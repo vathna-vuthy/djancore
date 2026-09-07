@@ -100,3 +100,19 @@ Execute the test suite using the optimized test settings:
 ```bash
 uv run python manage.py test --settings=config.settings.test
 ```
+
+---
+
+## Code Quality & Linting
+
+Run Ruff linting, formatting, and Pyright static type checks:
+```bash
+# Check and auto-fix lints
+uv run ruff check --fix
+
+# Format code
+uv run ruff format
+
+# Run static type checking
+uv run pyright
+```

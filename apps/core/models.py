@@ -1,9 +1,10 @@
 import uuid
+
 from django.db import models
 
 
 class TimeStampedModel(models.Model):
-    """An abstract base model providing self-updating created_at and updated_at fields."""
+    """An abstract base model providing self-updating timestamp fields."""
 
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)

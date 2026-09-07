@@ -1,15 +1,14 @@
+from django.contrib.auth import get_user_model
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
-from django.contrib.auth import get_user_model
 
 from apps.users.serializers import (
-    UserSerializer,
-    UserRegistrationSerializer,
     ChangePasswordSerializer,
+    UserRegistrationSerializer,
+    UserSerializer,
 )
-from apps.users.permissions import IsOwnerOrAdmin
 
 User = get_user_model()
 

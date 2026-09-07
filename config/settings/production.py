@@ -1,6 +1,6 @@
 """Production settings for djancore."""
+
 from .base import *  # noqa: F403
-import environ
 
 DEBUG = False
 

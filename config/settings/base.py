@@ -1,5 +1,7 @@
 """Base settings for djancore project."""
+
 from pathlib import Path
+
 import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -91,7 +93,9 @@ AUTH_USER_MODEL = "users.User"
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": (
+            "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+        ),
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
@@ -147,7 +151,7 @@ REST_FRAMEWORK = {
 # drf-spectacular (OpenAPI 3 / Swagger) configuration
 SPECTACULAR_SETTINGS = {
     "TITLE": "djancore API",
-    "DESCRIPTION": "Production-ready API documentation and OpenAPI 3 schema for djancore",
+    "DESCRIPTION": "Production-ready API documentation for djancore",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
