@@ -3,6 +3,7 @@
 Production-ready, modular Django & Django REST Framework application featuring:
 - **AWS IAM-inspired Identity & Access Management (`apps.iam`)**
 - **Dynamic System Configuration with Zero-Latency Caching (`apps.system_config`)**
+- **Multi-Channel Notification System & Scheduler (`apps.notifications`)**
 - **Soft-Delete Model Architecture (`apps.core`)**
 - **OpenAPI 3.0 & Swagger UI Documentation**
 
@@ -10,6 +11,13 @@ Production-ready, modular Django & Django REST Framework application featuring:
 
 ## Features
 
+- **Multi-Channel Notifications & Scheduling (`apps.notifications`)**:
+  - Modular provider architecture (`BaseNotificationProvider`, `ProviderRegistry`).
+  - Out-of-the-box channels: **Email** (HTML + multipart fallback, `smtp4dev` integration) and **Telegram** (Bot API direct).
+  - Dynamic **Notification Templates** with variable interpolation (`{{ username }}`, `{{ order_id }}`).
+  - **Scheduled Notifications** engine (`scheduled_for`, `/cancel/`, `/reschedule/`, `/retry/`).
+  - Concurrency-safe background worker (`select_for_update(skip_locked=True)` via `process_scheduled_notifications` CLI or daemon).
+  - Complete delivery tracking with `NotificationLog` audit records and error diagnostics.
 - **Dynamic System Configuration (`apps.system_config`)**:
   - Independent and reusable in any Django project.
   - Runtime tunable settings instead of hardcoded environment variables.
@@ -84,10 +92,15 @@ Copy the sample environment file:
 cp .env.example .env
 ```
 
-### 3. Install Dependencies
+### 3. Install Dependencies & Local Services
 ```bash
 uv sync
+
+# Start local SMTP mailbox (smtp4dev) and Redis via Docker Compose
+docker compose up -d
 ```
+- **smtp4dev Web Mailbox**: [http://localhost:5000](http://localhost:5000) (SMTP on port `2525`)
+- **Redis**: `localhost:6379`
 
 ### 4. Run Migrations
 ```bash
@@ -99,9 +112,44 @@ uv run python manage.py migrate
 uv run python manage.py createsuperuser
 ```
 
-### 6. Start Development Server
+### 6. Start Development Server & Notification Worker
 ```bash
+# In terminal 1 (Django API server):
 uv run python manage.py runserver
+
+# In terminal 2 (Continuous Scheduled Notification Worker):
+uv run python manage.py process_scheduled_notifications --daemon --interval 10
+```
+
+---
+
+## Python API: Using Notifications in Code
+
+```python
+import datetime
+from django.utils import timezone
+from apps.notifications.services import NotificationService
+
+# 1. Direct immediate dispatch
+log = NotificationService.send(
+    recipient="user@example.com",
+    channel="email",
+    subject="Welcome to Djancore",
+    body="Your account is ready to use!",
+)
+
+# 2. Template-rendered scheduled delivery
+future_time = timezone.now() + datetime.timedelta(hours=24)
+scheduled_log = NotificationService.send_template(
+    recipient="12345678",  # Telegram chat_id
+    template_code="SUBSCRIPTION_REMINDER",
+    context={"username": "Alice", "days_left": 3},
+    scheduled_for=future_time,
+)
+
+# 3. Reschedule or Cancel
+NotificationService.reschedule(scheduled_log.id, timezone.now() + datetime.timedelta(days=2))
+NotificationService.cancel_scheduled(scheduled_log.id)
 ```
 
 ---
@@ -150,6 +198,22 @@ set_config("MAX_LOGIN_ATTEMPTS", 10, group="security", description="Max failed a
 | `POST` | `/api/v1/system-config/{id}/restore/` | Restore soft-deleted configuration | Yes (Staff) |
 | `POST` | `/api/v1/system-config/bulk-update/` | Bulk update multiple configurations | Yes (Staff) |
 | `POST` | `/api/v1/system-config/purge-cache/` | Purge all cached configurations | Yes (Staff) |
+
+### Notifications & Scheduling (`/api/v1/notifications/`)
+
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `POST` | `/api/v1/notifications/send/` | Send direct or scheduled notification | Yes |
+| `POST` | `/api/v1/notifications/send-template/` | Send template-based notification | Yes |
+| `GET` | `/api/v1/notifications/providers/` | List available channel providers & status | Yes |
+| `GET/POST` | `/api/v1/notifications/templates/` | Manage notification templates | Yes (Staff) |
+| `GET/PUT/PATCH/DEL` | `/api/v1/notifications/templates/{id}/` | Notification template details & soft-delete | Yes (Staff) |
+| `POST` | `/api/v1/notifications/templates/{id}/restore/` | Restore soft-deleted template | Yes (Staff) |
+| `GET` | `/api/v1/notifications/logs/` | List delivery logs (users see theirs, staff sees all) | Yes |
+| `GET` | `/api/v1/notifications/logs/{id}/` | Get delivery log details & error diagnostics | Yes |
+| `POST` | `/api/v1/notifications/logs/{id}/cancel/` | Cancel pending scheduled notification | Yes |
+| `POST` | `/api/v1/notifications/logs/{id}/reschedule/` | Reschedule pending notification delivery | Yes |
+| `POST` | `/api/v1/notifications/logs/{id}/retry/` | Retry sending failed/cancelled notification | Yes |
 
 ### Authentication & Profile (`/api/v1/iam/auth/`)
 

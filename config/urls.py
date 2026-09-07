@@ -42,4 +42,8 @@ urlpatterns = [
         "api/v1/system-config/",
         include("apps.system_config.urls", namespace="system_config"),
     ),
+    path(
+        "api/v1/notifications/",
+        include("apps.notifications.urls", namespace="notifications"),
+    ),
 ]

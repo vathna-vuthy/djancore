@@ -1,0 +1,26 @@
+services:
+  smtp4dev:
+    image: rnwood/smtp4dev:v3
+    container_name: djancore_smtp4dev
+    restart: unless-stopped
+    ports:
+      - "5000:80"    # Webmail UI
+      - "2525:25"    # SMTP Server
+    environment:
+      - ServerOptions__HostName=smtp4dev
+      - ServerOptions__Port=25
+    volumes:
+      - smtp4dev-data:/smtp4dev
+
+  redis:
+    image: redis:7-alpine
+    container_name: djancore_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  smtp4dev-data:
+  redis-data:

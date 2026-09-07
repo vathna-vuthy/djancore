@@ -47,6 +47,7 @@ LOCAL_APPS = [
     "apps.core.apps.CoreConfig",
     "apps.iam.apps.IamConfig",
     "apps.system_config.apps.SystemConfigAppConfig",
+    "apps.notifications.apps.NotificationsConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -197,6 +198,12 @@ SPECTACULAR_SETTINGS = {
             "name": "System Config",
             "description": (
                 "Dynamic runtime system configuration management with zero-latency caching."
+            ),
+        },
+        {
+            "name": "Notifications",
+            "description": (
+                "Multi-channel notification dispatch, templating, scheduling, and delivery tracking."
             ),
         },
     ],
