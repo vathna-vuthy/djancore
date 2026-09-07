@@ -1,16 +1,27 @@
 # djancore
 
-Production-ready, modular Django & Django REST Framework application featuring an AWS IAM-inspired Identity & Access Management system, soft-delete model architecture, and OpenAPI 3.0 documentation.
+Production-ready, modular Django & Django REST Framework application featuring:
+- **AWS IAM-inspired Identity & Access Management (`apps.iam`)**
+- **Dynamic System Configuration with Zero-Latency Caching (`apps.system_config`)**
+- **Soft-Delete Model Architecture (`apps.core`)**
+- **OpenAPI 3.0 & Swagger UI Documentation**
 
 ---
 
 ## Features
 
+- **Dynamic System Configuration (`apps.system_config`)**:
+  - Independent and reusable in any Django project.
+  - Runtime tunable settings instead of hardcoded environment variables.
+  - Multi-type casting: `string`, `integer`, `float`, `boolean`, `json`.
+  - Zero-latency caching layer with automated write invalidation.
+  - `is_secret` (masked in APIs and logs) and `is_public` (open to unauthenticated clients).
+  - Bulk updates & Admin cache purge actions.
 - **AWS IAM-Inspired Access Control (`apps.iam`)**:
   - Granular **Permissions** with Action, Resource, Effect (`ALLOW` vs `DENY`), and wildcard matching (`*`, `users:*`, `org:123:*`).
   - **Roles** grouping permissions for direct assignment to users or groups.
   - **User Groups** for hierarchical policy inheritance.
-  - Policy evaluation engine with explicit `DENY` precedence over `ALLOW` and default `DENY`.
+  - Policy evaluation engine with explicit `DENY` precedence over `ALLOW`.
 - **Soft-Delete Architecture (`apps.core`)**:
   - `SoftDeleteQuerySet`, `SoftDeleteManager`, `SoftDeleteModel`, and unified `BaseModel` (UUID + Timestamps + Soft-Delete).
   - API and Admin restore actions.
@@ -38,15 +49,22 @@ djancore/
 │   ├── core/                # Shared base models, pagination & utilities
 │   │   ├── models.py        # BaseModel, SoftDeleteModel, UUIDModel, TimeStampedModel
 │   │   └── pagination.py    # StandardResultsSetPagination
-│   └── iam/                 # Identity & Access Management
-│       ├── models.py        # User, Role, Permission, UserGroup
-│       ├── managers.py      # UserManager (email + soft delete)
-│       ├── services.py      # IAMService policy evaluator
-│       ├── permissions.py   # HasIAMPermission (DRF permission class)
-│       ├── serializers.py   # Auth, User, Role, Group serializers
-│       ├── views.py         # REST ViewSets & evaluation endpoints
-│       ├── urls.py          # IAM API routes
-│       └── tests/           # Unit, evaluator & API integration tests
+│   ├── iam/                 # Identity & Access Management
+│   │   ├── models.py        # User, Role, Permission, UserGroup
+│   │   ├── managers.py      # UserManager (email + soft delete)
+│   │   ├── services.py      # IAMService policy evaluator
+│   │   ├── permissions.py   # HasIAMPermission (DRF permission class)
+│   │   ├── serializers.py   # Auth, User, Role, Group serializers
+│   │   ├── views.py         # REST ViewSets & evaluation endpoints
+│   │   ├── urls.py          # IAM API routes
+│   │   └── tests/           # Unit, evaluator & API integration tests
+│   └── system_config/       # Standalone dynamic configuration
+│       ├── models.py        # SystemConfig
+│       ├── services.py      # ConfigService & typed getters
+│       ├── serializers.py   # Config & bulk update serializers
+│       ├── views.py         # ViewSet, public & bulk views
+│       ├── urls.py          # System config routes
+│       └── tests/           # Service & API tests
 ├── manage.py
 ├── pyproject.toml
 └── .env.example
@@ -88,6 +106,28 @@ uv run python manage.py runserver
 
 ---
 
+## Python API: Using System Config in Code
+
+```python
+from apps.system_config.services import (
+    get_config,
+    get_bool_config,
+    get_int_config,
+    get_json_config,
+    set_config,
+)
+
+# Reading configuration with fallback defaults (zero DB queries when cached)
+max_login = get_int_config("MAX_LOGIN_ATTEMPTS", default=5)
+maintenance = get_bool_config("MAINTENANCE_MODE", default=False)
+features = get_json_config("ENABLED_FEATURES", default=["auth", "billing"])
+
+# Setting or updating configuration at runtime
+set_config("MAX_LOGIN_ATTEMPTS", 10, group="security", description="Max failed attempts")
+```
+
+---
+
 ## API Endpoints
 
 ### Documentation & Health
@@ -98,6 +138,18 @@ uv run python manage.py runserver
 | `GET` | `/api/docs/` | Swagger UI Interactive API documentation | No |
 | `GET` | `/api/redoc/` | Redoc API documentation | No |
 | `GET` | `/api/schema/` | OpenAPI 3.0 YAML/JSON schema | No |
+
+### Dynamic System Configuration (`/api/v1/system-config/`)
+
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET` | `/api/v1/system-config/public/` | Get all public configuration key-values | No |
+| `GET/POST` | `/api/v1/system-config/` | List and create system configurations | Yes (Staff) |
+| `GET/PUT/PATCH` | `/api/v1/system-config/{id}/` | Retrieve/Update configuration setting | Yes (Staff) |
+| `DELETE` | `/api/v1/system-config/{id}/` | Soft-delete configuration setting | Yes (Staff) |
+| `POST` | `/api/v1/system-config/{id}/restore/` | Restore soft-deleted configuration | Yes (Staff) |
+| `POST` | `/api/v1/system-config/bulk-update/` | Bulk update multiple configurations | Yes (Staff) |
+| `POST` | `/api/v1/system-config/purge-cache/` | Purge all cached configurations | Yes (Staff) |
 
 ### Authentication & Profile (`/api/v1/iam/auth/`)
 

@@ -46,6 +46,7 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = [
     "apps.core.apps.CoreConfig",
     "apps.iam.apps.IamConfig",
+    "apps.system_config.apps.SystemConfigAppConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -191,6 +192,12 @@ SPECTACULAR_SETTINGS = {
         {
             "name": "Health",
             "description": "Service health check and status.",
+        },
+        {
+            "name": "System Config",
+            "description": (
+                "Dynamic runtime system configuration management with zero-latency caching."
+            ),
         },
     ],
 }

@@ -38,4 +38,8 @@ urlpatterns = [
     ),
     # API endpoints
     path("api/v1/iam/", include("apps.iam.urls", namespace="iam")),
+    path(
+        "api/v1/system-config/",
+        include("apps.system_config.urls", namespace="system_config"),
+    ),
 ]
