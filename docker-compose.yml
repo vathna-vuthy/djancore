@@ -1,4 +1,22 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: djancore_postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=djancore
+      - POSTGRES_USER=djancore
+      - POSTGRES_PASSWORD=djancore_secret
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U djancore -d djancore"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   smtp4dev:
     image: rnwood/smtp4dev:v3
     container_name: djancore_smtp4dev
@@ -22,5 +40,6 @@ services:
       - redis-data:/data
 
 volumes:
+  postgres-data:
   smtp4dev-data:
   redis-data:

@@ -96,9 +96,10 @@ cp .env.example .env
 ```bash
 uv sync
 
-# Start local SMTP mailbox (smtp4dev) and Redis via Docker Compose
+# Start PostgreSQL 16, smtp4dev mailbox, and Redis via Docker Compose
 docker compose up -d
 ```
+- **PostgreSQL 16**: `localhost:5432` (`POSTGRES_DB=djancore`, `POSTGRES_USER=djancore`, `POSTGRES_PASSWORD=djancore_secret`)
 - **smtp4dev Web Mailbox**: [http://localhost:5000](http://localhost:5000) (SMTP on port `2525`)
 - **Redis**: `localhost:6379`
 
