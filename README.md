@@ -82,6 +82,9 @@ uv run python manage.py runserver
 | Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
 | `GET` | `/health/` | Health check endpoint | No |
+| `GET` | `/api/docs/` | Swagger UI Interactive API documentation | No |
+| `GET` | `/api/redoc/` | Redoc API documentation | No |
+| `GET` | `/api/schema/` | OpenAPI 3.0 YAML/JSON schema | No |
 | `POST` | `/api/v1/users/register/` | Register new user account | No |
 | `POST` | `/api/v1/users/login/` | Obtain auth token | No |
 | `GET` | `/api/v1/users/me/` | Current user profile | Yes (Token / Session) |

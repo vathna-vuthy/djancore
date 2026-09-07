@@ -10,4 +10,5 @@ dependencies = [
     "django-environ>=0.14.0",
     "django-filter>=26.1",
     "djangorestframework>=3.18.0",
+    "drf-spectacular>=0.30.0",
 ]

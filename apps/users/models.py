@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+
 from apps.core.models import TimeStampedModel
 from apps.users.managers import UserManager
 
@@ -28,5 +29,5 @@ class User(AbstractUser, TimeStampedModel):
         return self.email
 
     @property
-    def full_name(self):
+    def full_name(self) -> str:
         return f"{self.first_name} {self.last_name}".strip() or self.email
