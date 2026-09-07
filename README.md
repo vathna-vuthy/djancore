@@ -100,7 +100,7 @@ uv sync
 docker compose up -d
 ```
 - **PostgreSQL 16**: `localhost:5432` (`POSTGRES_DB=djancore`, `POSTGRES_USER=djancore`, `POSTGRES_PASSWORD=djancore_secret`)
-- **smtp4dev Web Mailbox**: [http://localhost:5000](http://localhost:5000) (SMTP on port `2525`)
+- **smtp4dev Web Mailbox**: [http://localhost:5005](http://localhost:5005) (SMTP on port `2525`)
 - **Redis**: `localhost:6379`
 
 ### 4. Run Migrations
