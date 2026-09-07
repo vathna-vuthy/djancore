@@ -51,6 +51,7 @@ select = [
 ignore = [
     "E501",   # Line length (handled by formatter)
     "RUF012", # Mutable class attributes on models/serializers
+    "DJ012",  # Model declaration order flexibility for custom managers
 ]
 
 [tool.ruff.lint.isort]

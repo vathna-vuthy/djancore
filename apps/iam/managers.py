@@ -1,8 +1,21 @@
 from django.contrib.auth.base_user import BaseUserManager
 
+from apps.core.models import SoftDeleteQuerySet
+
 
 class UserManager(BaseUserManager):
-    """Custom user manager where email is the unique identifier for authentication."""
+    """Custom user manager supporting email authentication and soft delete."""
+
+    def get_queryset(self) -> SoftDeleteQuerySet:
+        return SoftDeleteQuerySet(self.model, using=self._db).alive()
+
+    def all_with_deleted(self) -> SoftDeleteQuerySet:
+        """Return all users including soft-deleted ones."""
+        return SoftDeleteQuerySet(self.model, using=self._db)
+
+    def deleted(self) -> SoftDeleteQuerySet:
+        """Return only soft-deleted users."""
+        return SoftDeleteQuerySet(self.model, using=self._db).dead()
 
     def create_user(self, email, password=None, **extra_fields):
         """Create and save a regular User with the given email and password."""

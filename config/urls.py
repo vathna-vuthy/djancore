@@ -3,6 +3,7 @@
 from django.contrib import admin
 from django.http import JsonResponse
 from django.urls import include, path
+from drf_spectacular.utils import extend_schema
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularRedocView,
@@ -10,6 +11,11 @@ from drf_spectacular.views import (
 )
 
 
+@extend_schema(
+    tags=["Health"],
+    summary="Health check",
+    description="Returns the service health status.",
+)
 def health_check(request):
     """Simple health check endpoint."""
     return JsonResponse({"status": "healthy", "service": "djancore"})
@@ -31,5 +37,5 @@ urlpatterns = [
         name="redoc",
     ),
     # API endpoints
-    path("api/v1/users/", include("apps.users.urls", namespace="users")),
+    path("api/v1/iam/", include("apps.iam.urls", namespace="iam")),
 ]

@@ -45,7 +45,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "apps.core.apps.CoreConfig",
-    "apps.users.apps.UsersConfig",
+    "apps.iam.apps.IamConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -88,7 +88,7 @@ DATABASES = {
 }
 
 # Custom User Model
-AUTH_USER_MODEL = "users.User"
+AUTH_USER_MODEL = "iam.User"
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
@@ -155,6 +155,44 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
+    "TAGS": [
+        {
+            "name": "IAM - Authentication",
+            "description": (
+                "User registration, login, profile, and password management."
+            ),
+        },
+        {
+            "name": "IAM - Policy Evaluation",
+            "description": ("Action and resource evaluation against IAM policies."),
+        },
+        {
+            "name": "IAM - Users",
+            "description": (
+                "User administration, direct role attachments, and direct permissions."
+            ),
+        },
+        {
+            "name": "IAM - Roles",
+            "description": (
+                "Role creation, permission attachments, and user assignments."
+            ),
+        },
+        {
+            "name": "IAM - Groups",
+            "description": (
+                "User group management, member management, and role attachments."
+            ),
+        },
+        {
+            "name": "IAM - Permissions",
+            "description": ("Permission definition with action, resource, and effect."),
+        },
+        {
+            "name": "Health",
+            "description": "Service health check and status.",
+        },
+    ],
 }
 
 # CORS configuration
