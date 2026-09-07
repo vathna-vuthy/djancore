@@ -1,5 +1,5 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import generics, permissions, status, viewsets
+from rest_framework import generics, permissions, status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -85,8 +85,9 @@ class SystemConfigViewSet(viewsets.ModelViewSet):
     tags=["System Config"],
     summary="Get public system configurations",
     description="Retrieve all public system settings as a key-value dictionary (open to unauthenticated clients).",
+    responses={200: dict},
 )
-class PublicConfigView(generics.GenericAPIView):
+class PublicConfigView(views.APIView):
     """Public endpoint returning all public system configurations."""
 
     permission_classes = [permissions.AllowAny]

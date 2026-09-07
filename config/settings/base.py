@@ -138,7 +138,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Django REST Framework configuration
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication",
+        "apps.core.authentication.BearerOrTokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
@@ -161,6 +161,11 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "persistAuthorization": True,
+        "displayOperationId": True,
+    },
     "TAGS": [
         {
             "name": "IAM - Authentication",

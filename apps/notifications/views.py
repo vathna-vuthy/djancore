@@ -1,5 +1,5 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import generics, permissions, status, viewsets
+from rest_framework import generics, permissions, status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -84,11 +84,6 @@ class NotificationTemplateViewSet(viewsets.ModelViewSet):
         tags=["Notifications"],
         summary="Get notification delivery log details",
         description="Retrieve details of a specific delivery log by UUID.",
-    ),
-    destroy=extend_schema(
-        tags=["Notifications"],
-        summary="Soft-delete notification delivery log",
-        description="Soft delete a notification delivery log.",
     ),
 )
 class NotificationLogViewSet(viewsets.ReadOnlyModelViewSet):
@@ -267,11 +262,10 @@ class SendTemplateNotificationView(generics.GenericAPIView):
     description="Retrieve all registered notification channel providers and their configuration status.",
     responses={200: ProviderInfoSerializer(many=True)},
 )
-class AvailableProvidersView(generics.GenericAPIView):
+class AvailableProvidersView(views.APIView):
     """Endpoint to inspect available notification providers and channels."""
 
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = ProviderInfoSerializer
 
     def get(self, request, *args, **kwargs):
         providers = [
@@ -282,5 +276,5 @@ class AvailableProvidersView(generics.GenericAPIView):
             }
             for channel, info in ProviderRegistry.list_providers().items()
         ]
-        serializer = self.get_serializer(providers, many=True)
+        serializer = ProviderInfoSerializer(providers, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
