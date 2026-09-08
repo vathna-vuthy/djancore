@@ -278,3 +278,27 @@ uv run ruff format
 # Run static type checking
 uv run pyright
 ```
+
+---
+
+## Contributing
+
+Contributions are welcome! Please read our [Contributing Guide](file:///Users/vathnavuthy/Developer/djancore/CONTRIBUTING.md) and [Code of Conduct](file:///Users/vathnavuthy/Developer/djancore/CODE_OF_CONDUCT.md) before submitting pull requests.
+
+1. Fork the repo and create your branch: `git checkout -b feat/my-feature`
+2. Ensure tests and lint checks pass: `uv run python manage.py test --settings=config.settings.test`
+3. Commit with Conventional Commits: `git commit -m 'feat: add awesome feature'`
+4. Push and submit a Pull Request.
+
+---
+
+## Security
+
+For security vulnerabilities and disclosure instructions, please see [SECURITY.md](file:///Users/vathnavuthy/Developer/djancore/SECURITY.md).
+
+---
+
+## License
+
+This project is licensed under the **MIT License** - see the [LICENSE](file:///Users/vathnavuthy/Developer/djancore/LICENSE) file for details.
+
