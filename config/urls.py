@@ -65,4 +65,8 @@ urlpatterns = [
         "api/v1/audit/",
         include("apps.audit.urls", namespace="audit"),
     ),
+    path(
+        "api/v1/organizations/",
+        include("apps.organizations.urls", namespace="organizations"),
+    ),
 ]

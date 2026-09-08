@@ -12,6 +12,13 @@ Production-ready, modular Django & Django REST Framework application featuring:
 ## Features
 
 - **Developer API Keys (`apps.api_keys`)**:
+- **Multi-Tenancy & Workspaces (`apps.organizations`)**:
+  - Full multi-tenant architecture with **Organizations**, **Memberships**, and granular role hierarchy (`OWNER`, `ADMIN`, `MEMBER`, `BILLING`, `VIEWER`).
+  - Active workspace resolution via `TenantMiddleware` (`X-Organization-ID` / `X-Tenant-ID` header and slug routing).
+  - Secure, tokenized **Team Invitations** (`djc_inv_...`) with automated 7-day expiration and one-click accept/decline flows.
+  - Tenant-scoped model mixin (`TenantModelMixin`) and managers (`TenantManager`) for data isolation.
+  - Workspace ownership transfer and membership lifecycle management.
+- **Developer API Keys & Authentication (`apps.api_keys`)**:
   - Secure, hashed API keys (`djc_live_...`) with instant prefix lookup ($O(1)$) and constant-time HMAC hash verification.
   - Multi-factor protection: IP address whitelisting, optional expiration dates, and one-click active toggling.
   - Scoped AWS IAM permission bindings for least-privilege key delegation.
@@ -82,6 +89,15 @@ djancore/
 │   │   ├── crypto.py        # Symmetric AES/Fernet encryption
 │   │   ├── docs.py          # Scalar API Reference view
 │   │   └── tests/           # Response, exception handler & pagination tests
+│   ├── organizations/       # Multi-Tenancy & Workspace Management
+│   │   ├── models.py        # Organization, OrganizationMember, OrganizationInvitation
+│   │   ├── middleware.py    # TenantMiddleware (X-Organization-ID resolution)
+│   │   ├── mixins.py        # TenantModelMixin & TenantManager
+│   │   ├── services.py      # Workspace creation, invites, ownership transfer
+│   │   ├── serializers.py   # Organization & Member serializers
+│   │   ├── views.py         # Workspace & Invitation ViewSets
+│   │   ├── urls.py          # Organization API routes
+│   │   └── tests/           # Model, middleware, service & API tests
 │   ├── api_keys/            # Developer API Keys & Authentication
 │   │   ├── models.py        # APIKey (prefix + SHA-256 hash + IAM scopes)
 │   │   ├── authentication.py# APIKeyAuthentication (X-API-Key / Api-Key)
@@ -188,6 +204,22 @@ uv run python manage.py process_scheduled_notifications --daemon --interval 10
 | `GET` | `/api/docs/` | Swagger UI Interactive API documentation | No |
 | `GET` | `/api/redoc/` | Redoc API documentation | No |
 | `GET` | `/api/schema/` | OpenAPI 3.0 YAML/JSON schema | No |
+
+### Multi-Tenancy & Workspaces (`/api/v1/organizations/`)
+
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET/POST` | `/api/v1/organizations/` | List user's workspaces and create new organization | Yes |
+| `GET/PATCH/DELETE` | `/api/v1/organizations/{id}/` | Inspect, update, or soft-delete workspace (Owner only) | Yes |
+| `POST` | `/api/v1/organizations/{id}/switch/` | Switch active workspace (sets `X-Organization-ID`) | Yes |
+| `GET/POST` | `/api/v1/organizations/{id}/members/` | List members and invite new team members | Yes |
+| `PATCH/DELETE` | `/api/v1/organizations/{id}/members/{id}/` | Change member role or remove member | Yes (Admin) |
+| `POST` | `/api/v1/organizations/{id}/leave/` | Leave organization workspace | Yes |
+| `POST` | `/api/v1/organizations/{id}/transfer-ownership/` | Transfer primary workspace ownership | Yes (Owner) |
+| `GET` | `/api/v1/organizations/invitations/` | List pending and historical team invitations | Yes |
+| `POST` | `/api/v1/organizations/invitations/accept/` | Accept team invitation by single-use token | Yes |
+| `POST` | `/api/v1/organizations/invitations/decline/` | Decline team invitation | Yes |
+| `POST` | `/api/v1/organizations/invitations/{id}/revoke/` | Revoke pending invitation | Yes (Admin) |
 
 ### Developer API Keys (`/api/v1/api-keys/`)
 

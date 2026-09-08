@@ -52,6 +52,7 @@ LOCAL_APPS = [
     "apps.api_keys.apps.ApiKeysConfig",
     "apps.webhooks.apps.WebhooksConfig",
     "apps.audit.apps.AuditConfig",
+    "apps.organizations.apps.OrganizationsConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -64,6 +65,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "apps.audit.middleware.AuditMiddleware",
+    "apps.organizations.middleware.TenantMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
