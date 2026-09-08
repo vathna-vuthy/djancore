@@ -69,4 +69,8 @@ urlpatterns = [
         "api/v1/organizations/",
         include("apps.organizations.urls", namespace="organizations"),
     ),
+    path(
+        "api/v1/auth/2fa/",
+        include("apps.two_factor.urls", namespace="two_factor"),
+    ),
 ]

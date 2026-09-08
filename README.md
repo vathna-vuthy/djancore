@@ -11,7 +11,13 @@ Production-ready, modular Django & Django REST Framework application featuring:
 
 ## Features
 
-- **Developer API Keys (`apps.api_keys`)**:
+- **Two-Factor Authentication (2FA / TOTP) (`apps.two_factor`)**:
+  - RFC 6238 Time-Based One-Time Password (TOTP) algorithm with zero external dependencies.
+  - Compatible with Google Authenticator, 1Password, Authy, Microsoft Authenticator, and Apple Passwords.
+  - AES-128 Fernet encrypted secret storage at rest.
+  - Single-use, cryptographically random backup recovery codes with SHA-256 hash storage.
+  - Time drift tolerance (±30s) and replay attack protection (`last_used_step`).
+  - Seamless login challenge integration with signed short-lived challenge tokens (5-minute TTL).
 - **Multi-Tenancy & Workspaces (`apps.organizations`)**:
   - Full multi-tenant architecture with **Organizations**, **Memberships**, and granular role hierarchy (`OWNER`, `ADMIN`, `MEMBER`, `BILLING`, `VIEWER`).
   - Active workspace resolution via `TenantMiddleware` (`X-Organization-ID` / `X-Tenant-ID` header and slug routing).
@@ -130,6 +136,15 @@ djancore/
 │   │   ├── views.py         # REST ViewSets & evaluation endpoints
 │   │   ├── urls.py          # IAM API routes
 │   │   └── tests/           # Unit, evaluator & API integration tests
+│   ├── two_factor/          # Two-Factor Authentication (2FA / TOTP)
+│   │   ├── models.py        # TOTPDevice (Fernet encrypted) & RecoveryCode (SHA-256)
+│   │   ├── totp.py          # RFC 6238 TOTP math, provisioning URI, and drift logic
+│   │   ├── services.py      # TwoFactorService, lifecycle, and challenge token verification
+│   │   ├── serializers.py   # Status, setup, confirm, and challenge serializers
+│   │   ├── views.py         # TwoFactorViewSet
+│   │   ├── urls.py          # 2FA API routes
+│   │   ├── admin.py         # Django Admin with status badges & code count
+│   │   └── tests/           # RFC 6238, service & API integration tests
 │   ├── notifications/       # Multi-Channel Notifications & Scheduling
 │   │   ├── models.py        # NotificationLog, NotificationTemplate
 │   │   ├── services.py      # NotificationService & Dispatcher
@@ -285,10 +300,21 @@ uv run python manage.py process_scheduled_notifications --daemon --interval 10
 | Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
 | `POST` | `/api/v1/iam/auth/register/` | Register new user account | No |
-| `POST` | `/api/v1/iam/auth/login/` | Obtain auth token | No |
+| `POST` | `/api/v1/iam/auth/login/` | Obtain auth token (returns 2FA challenge if active) | No |
 | `GET` | `/api/v1/iam/auth/me/` | Current user profile | Yes |
 | `PUT/PATCH` | `/api/v1/iam/auth/me/` | Update profile | Yes |
 | `POST` | `/api/v1/iam/auth/change-password/` | Change password | Yes |
+
+### Two-Factor Authentication (`/api/v1/auth/2fa/`)
+
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET` | `/api/v1/auth/2fa/status/` | Get 2FA status and remaining backup recovery codes | Yes |
+| `POST` | `/api/v1/auth/2fa/setup/` | Generate secret, otpauth QR URL, and 8 recovery codes | Yes |
+| `POST` | `/api/v1/auth/2fa/confirm/` | Confirm initial 6-digit code to activate 2FA | Yes |
+| `POST` | `/api/v1/auth/2fa/disable/` | Disable 2FA with valid TOTP or recovery code | Yes |
+| `POST` | `/api/v1/auth/2fa/regenerate-codes/` | Regenerate 8 fresh backup recovery codes | Yes |
+| `POST` | `/api/v1/auth/2fa/challenge/` | Complete 2FA login challenge with token + code | No |
 
 ### Policy Evaluation & IAM Resources (`/api/v1/iam/`)
 

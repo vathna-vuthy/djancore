@@ -66,6 +66,21 @@ class CustomAuthToken(ObtainAuthToken):
         )
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
+
+        # Check if 2FA is confirmed for this user
+        from apps.two_factor.services import TwoFactorService
+
+        if TwoFactorService.is_2fa_enabled(user):
+            challenge_token = TwoFactorService.create_challenge_token(user)
+            return Response(
+                {
+                    "requires_2fa": True,
+                    "challenge_token": challenge_token,
+                    "message": "Two-factor authentication required. Submit your 2FA code to /api/v1/auth/2fa/challenge/.",
+                },
+                status=status.HTTP_200_OK,
+            )
+
         token, _ = Token.objects.get_or_create(user=user)
         return Response(
             {

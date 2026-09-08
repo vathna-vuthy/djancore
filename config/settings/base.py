@@ -53,6 +53,7 @@ LOCAL_APPS = [
     "apps.webhooks.apps.WebhooksConfig",
     "apps.audit.apps.AuditConfig",
     "apps.organizations.apps.OrganizationsConfig",
+    "apps.two_factor.apps.TwoFactorConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -228,6 +229,12 @@ SPECTACULAR_SETTINGS = {
             "name": "Notifications",
             "description": (
                 "Multi-channel notification dispatch, templating, scheduling, and delivery tracking."
+            ),
+        },
+        {
+            "name": "Two-Factor Authentication",
+            "description": (
+                "Time-Based One-Time Password (TOTP / RFC 6238) two-factor authentication and recovery codes."
             ),
         },
     ],
