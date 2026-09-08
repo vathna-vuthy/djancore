@@ -57,4 +57,8 @@ urlpatterns = [
         "api/v1/api-keys/",
         include("apps.api_keys.urls", namespace="api_keys"),
     ),
+    path(
+        "api/v1/webhooks/",
+        include("apps.webhooks.urls", namespace="webhooks"),
+    ),
 ]

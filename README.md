@@ -16,6 +16,11 @@ Production-ready, modular Django & Django REST Framework application featuring:
   - Multi-factor protection: IP address whitelisting, optional expiration dates, and one-click active toggling.
   - Scoped AWS IAM permission bindings for least-privilege key delegation.
   - Complete key lifecycle management (create, list, inspect, rotate, revoke, restore).
+- **Outbound Webhooks Platform (`apps.webhooks`)**:
+  - Event-driven webhook dispatcher supporting wildcard (`*`), pattern (`user.*`), and exact event subscriptions.
+  - Cryptographic **HMAC-SHA256** payload signing (`X-Djancore-Signature: t={timestamp},v1={sig}`) with anti-replay timestamp protection.
+  - Real-time delivery engine with automated exponential retry backoff, response latency tracking, and HTTP status/body logging.
+  - Interactive connectivity test ping (`/ping/`) and one-click signing secret rotation (`/rotate-secret/`).
 - **Multi-Channel Notifications & Scheduling (`apps.notifications`)**:
   - Modular provider architecture (`BaseNotificationProvider`, `ProviderRegistry`).
   - Out-of-the-box channels: **Email** (HTML + multipart fallback, `smtp4dev` integration) and **Telegram** (Bot API direct).
@@ -78,6 +83,13 @@ djancore/
 │   │   ├── views.py         # APIKeyViewSet & lifecycle actions
 │   │   ├── urls.py          # API key routes
 │   │   └── tests/           # Model, auth & integration tests
+│   ├── webhooks/            # Outbound Webhooks & Event Dispatcher
+│   │   ├── models.py        # WebhookEndpoint, WebhookDelivery
+│   │   ├── services.py      # WebhookSignature (HMAC-SHA256) & WebhookDispatcher
+│   │   ├── serializers.py   # Endpoint & Delivery log serializers
+│   │   ├── views.py         # WebhookEndpointViewSet & WebhookDeliveryViewSet
+│   │   ├── urls.py          # Webhook API routes
+│   │   └── tests/           # Model, HMAC signing & API integration tests
 │   ├── iam/                 # Identity & Access Management
 │   │   ├── models.py        # User, Role, Permission, UserGroup
 │   │   ├── managers.py      # UserManager (email + soft delete)
@@ -171,6 +183,20 @@ uv run python manage.py process_scheduled_notifications --daemon --interval 10
 | `DELETE` | `/api/v1/api-keys/{id}/` | Revoke (soft-delete) an API key | Yes |
 | `POST` | `/api/v1/api-keys/{id}/rotate/` | Rotate secret key, invalidating prior secret | Yes |
 | `POST` | `/api/v1/api-keys/{id}/restore/` | Restore revoked API key | Yes |
+
+### Outbound Webhooks (`/api/v1/webhooks/`)
+
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET/POST` | `/api/v1/webhooks/endpoints/` | List and register webhook target endpoints | Yes |
+| `GET/PATCH` | `/api/v1/webhooks/endpoints/{id}/` | Inspect & update endpoint configuration | Yes |
+| `DELETE` | `/api/v1/webhooks/endpoints/{id}/` | Soft-delete webhook target endpoint | Yes |
+| `POST` | `/api/v1/webhooks/endpoints/{id}/ping/` | Dispatch test ping to destination endpoint | Yes |
+| `POST` | `/api/v1/webhooks/endpoints/{id}/rotate-secret/` | Rotate HMAC-SHA256 signing secret | Yes |
+| `POST` | `/api/v1/webhooks/endpoints/{id}/restore/` | Restore soft-deleted endpoint | Yes |
+| `GET` | `/api/v1/webhooks/deliveries/` | List outbound delivery attempt audit logs | Yes |
+| `GET` | `/api/v1/webhooks/deliveries/{id}/` | Detailed delivery log with headers & body | Yes |
+| `POST` | `/api/v1/webhooks/deliveries/{id}/retry/` | Manually retry a failed delivery attempt | Yes |
 
 ### Dynamic System Configuration (`/api/v1/system-config/`)
 

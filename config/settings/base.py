@@ -50,6 +50,7 @@ LOCAL_APPS = [
     "apps.system_config.apps.SystemConfigAppConfig",
     "apps.notifications.apps.NotificationsConfig",
     "apps.api_keys.apps.ApiKeysConfig",
+    "apps.webhooks.apps.WebhooksConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
