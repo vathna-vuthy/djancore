@@ -1,8 +1,8 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import generics, permissions, status, views, viewsets
+from rest_framework import generics, permissions, views, viewsets
 from rest_framework.decorators import action
-from rest_framework.response import Response
 
+from apps.core.responses import ApiResponse
 from apps.system_config.models import SystemConfig
 from apps.system_config.serializers import (
     BulkUpdateConfigSerializer,
@@ -64,8 +64,8 @@ class SystemConfigViewSet(viewsets.ModelViewSet):
         """Restore a soft-deleted configuration setting."""
         config_obj = SystemConfig.all_objects.get(pk=pk)
         config_obj.restore()
-        return Response(
-            {"message": f"Config '{config_obj.key}' restored successfully."}
+        return ApiResponse.success(
+            message=f"Config '{config_obj.key}' restored successfully."
         )
 
     @extend_schema(
@@ -78,7 +78,7 @@ class SystemConfigViewSet(viewsets.ModelViewSet):
     def purge_cache(self, request):
         """Manually purge all cached configuration settings."""
         ConfigService.purge_cache()
-        return Response({"message": "System config cache purged successfully."})
+        return ApiResponse.success(message="System config cache purged successfully.")
 
 
 @extend_schema(
@@ -94,7 +94,7 @@ class PublicConfigView(views.APIView):
 
     def get(self, request, *args, **kwargs):
         configs = ConfigService.get_public_configs()
-        return Response(configs, status=status.HTTP_200_OK)
+        return ApiResponse.success(data=configs)
 
 
 @extend_schema(
@@ -113,10 +113,7 @@ class BulkUpdateConfigView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         updated = serializer.save()
-        return Response(
-            {
-                "message": f"Successfully updated {len(updated)} configurations.",
-                "updated_keys": [c.key for c in updated],
-            },
-            status=status.HTTP_200_OK,
+        return ApiResponse.success(
+            data={"updated_keys": [c.key for c in updated]},
+            message=f"Successfully updated {len(updated)} configurations.",
         )

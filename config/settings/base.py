@@ -152,6 +152,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "apps.core.pagination.StandardResultsSetPagination",
     "PAGE_SIZE": 20,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "EXCEPTION_HANDLER": "apps.core.exceptions.custom_exception_handler",
 }
 
 # drf-spectacular (OpenAPI 3 / Swagger) configuration

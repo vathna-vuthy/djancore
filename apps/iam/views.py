@@ -6,6 +6,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from apps.core.responses import ApiResponse
 from apps.iam.models import Permission, Role, UserGroup
 from apps.iam.permissions import IsAdminOrHasIAMPermission
 from apps.iam.serializers import (
@@ -118,10 +119,7 @@ class ChangePasswordView(generics.GenericAPIView):
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(
-            {"message": "Password updated successfully."},
-            status=status.HTTP_200_OK,
-        )
+        return ApiResponse.success(message="Password updated successfully.")
 
 
 @extend_schema(
@@ -177,8 +175,8 @@ class PermissionViewSet(viewsets.ModelViewSet):
         """Restore a soft-deleted permission."""
         permission_obj = Permission.all_objects.get(pk=pk)
         permission_obj.restore()
-        return Response(
-            {"message": f"Permission '{permission_obj.name}' restored successfully."}
+        return ApiResponse.success(
+            message=f"Permission '{permission_obj.name}' restored successfully."
         )
 
 
@@ -216,8 +214,8 @@ class RoleViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         perms = Permission.objects.filter(id__in=serializer.validated_data["ids"])
         role.permissions.add(*perms)
-        return Response(
-            {"message": f"Attached {perms.count()} permissions to role '{role.name}'."}
+        return ApiResponse.success(
+            message=f"Attached {perms.count()} permissions to role '{role.name}'."
         )
 
     @extend_schema(
@@ -233,10 +231,8 @@ class RoleViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         perms = Permission.objects.filter(id__in=serializer.validated_data["ids"])
         role.permissions.remove(*perms)
-        return Response(
-            {
-                "message": f"Detached {perms.count()} permissions from role '{role.name}'."
-            }
+        return ApiResponse.success(
+            message=f"Detached {perms.count()} permissions from role '{role.name}'."
         )
 
     @extend_schema(
@@ -252,8 +248,8 @@ class RoleViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         users = User.objects.filter(id__in=serializer.validated_data["ids"])
         role.users.add(*users)
-        return Response(
-            {"message": f"Assigned {users.count()} users to role '{role.name}'."}
+        return ApiResponse.success(
+            message=f"Assigned {users.count()} users to role '{role.name}'."
         )
 
     @extend_schema(
@@ -269,8 +265,8 @@ class RoleViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         users = User.objects.filter(id__in=serializer.validated_data["ids"])
         role.users.remove(*users)
-        return Response(
-            {"message": f"Removed {users.count()} users from role '{role.name}'."}
+        return ApiResponse.success(
+            message=f"Removed {users.count()} users from role '{role.name}'."
         )
 
     @extend_schema(
@@ -284,7 +280,7 @@ class RoleViewSet(viewsets.ModelViewSet):
         """Restore a soft-deleted role."""
         role = Role.all_objects.get(pk=pk)
         role.restore()
-        return Response({"message": f"Role '{role.name}' restored successfully."})
+        return ApiResponse.success(message=f"Role '{role.name}' restored successfully.")
 
 
 @extend_schema_view(
@@ -325,8 +321,8 @@ class UserGroupViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         users = User.objects.filter(id__in=serializer.validated_data["ids"])
         group.members.add(*users)
-        return Response(
-            {"message": f"Added {users.count()} members to group '{group.name}'."}
+        return ApiResponse.success(
+            message=f"Added {users.count()} members to group '{group.name}'."
         )
 
     @extend_schema(
@@ -342,8 +338,8 @@ class UserGroupViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         users = User.objects.filter(id__in=serializer.validated_data["ids"])
         group.members.remove(*users)
-        return Response(
-            {"message": f"Removed {users.count()} members from group '{group.name}'."}
+        return ApiResponse.success(
+            message=f"Removed {users.count()} members from group '{group.name}'."
         )
 
     @extend_schema(
@@ -359,8 +355,8 @@ class UserGroupViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         roles = Role.objects.filter(id__in=serializer.validated_data["ids"])
         group.roles.add(*roles)
-        return Response(
-            {"message": f"Attached {roles.count()} roles to group '{group.name}'."}
+        return ApiResponse.success(
+            message=f"Attached {roles.count()} roles to group '{group.name}'."
         )
 
     @extend_schema(
@@ -376,8 +372,8 @@ class UserGroupViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         roles = Role.objects.filter(id__in=serializer.validated_data["ids"])
         group.roles.remove(*roles)
-        return Response(
-            {"message": f"Detached {roles.count()} roles from group '{group.name}'."}
+        return ApiResponse.success(
+            message=f"Detached {roles.count()} roles from group '{group.name}'."
         )
 
     @extend_schema(
@@ -391,7 +387,9 @@ class UserGroupViewSet(viewsets.ModelViewSet):
         """Restore a soft-deleted user group."""
         group = UserGroup.all_objects.get(pk=pk)
         group.restore()
-        return Response({"message": f"Group '{group.name}' restored successfully."})
+        return ApiResponse.success(
+            message=f"Group '{group.name}' restored successfully."
+        )
 
 
 @extend_schema_view(
@@ -426,8 +424,8 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         roles = Role.objects.filter(id__in=serializer.validated_data["ids"])
         user.roles.add(*roles)
-        return Response(
-            {"message": f"Attached {roles.count()} roles to user '{user.email}'."}
+        return ApiResponse.success(
+            message=f"Attached {roles.count()} roles to user '{user.email}'."
         )
 
     @extend_schema(
@@ -443,8 +441,8 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         roles = Role.objects.filter(id__in=serializer.validated_data["ids"])
         user.roles.remove(*roles)
-        return Response(
-            {"message": f"Detached {roles.count()} roles from user '{user.email}'."}
+        return ApiResponse.success(
+            message=f"Detached {roles.count()} roles from user '{user.email}'."
         )
 
     @extend_schema(
@@ -460,10 +458,8 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         perms = Permission.objects.filter(id__in=serializer.validated_data["ids"])
         user.direct_permissions.add(*perms)
-        return Response(
-            {
-                "message": f"Attached {perms.count()} direct permissions to user '{user.email}'."
-            }
+        return ApiResponse.success(
+            message=f"Attached {perms.count()} direct permissions to user '{user.email}'."
         )
 
     @extend_schema(
@@ -479,10 +475,8 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         perms = Permission.objects.filter(id__in=serializer.validated_data["ids"])
         user.direct_permissions.remove(*perms)
-        return Response(
-            {
-                "message": f"Detached {perms.count()} direct permissions from user '{user.email}'."
-            }
+        return ApiResponse.success(
+            message=f"Detached {perms.count()} direct permissions from user '{user.email}'."
         )
 
     @extend_schema(
@@ -496,4 +490,6 @@ class UserViewSet(viewsets.ModelViewSet):
         """Restore a soft-deleted user."""
         user = User.all_objects.get(pk=pk)
         user.restore()
-        return Response({"message": f"User '{user.email}' restored successfully."})
+        return ApiResponse.success(
+            message=f"User '{user.email}' restored successfully."
+        )

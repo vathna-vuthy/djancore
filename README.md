@@ -25,6 +25,10 @@ Production-ready, modular Django & Django REST Framework application featuring:
   - Zero-latency caching layer with automated write invalidation.
   - `is_secret` (masked in APIs and logs) and `is_public` (open to unauthenticated clients).
   - Bulk updates & Admin cache purge actions.
+- **Standardized API Response Architecture (`apps.core`)**:
+  - `ApiResponse` response envelope for uniform API outputs (`success`, `message`, `data`, `meta`, `errors`, `code`).
+  - Global `custom_exception_handler` normalizing all DRF validation, authentication, permissions, and throttling errors.
+  - `StandardResultsSetPagination` wrapping list responses with pagination metadata (`page`, `page_size`, `total_pages`, `total_count`, `next`, `previous`).
 - **AWS IAM-Inspired Access Control (`apps.iam`)**:
   - Granular **Permissions** with Action, Resource, Effect (`ALLOW` vs `DENY`), and wildcard matching (`*`, `users:*`, `org:123:*`).
   - **Roles** grouping permissions for direct assignment to users or groups.
@@ -54,9 +58,12 @@ djancore/
 │   ├── wsgi.py              # WSGI entrypoint
 │   └── asgi.py              # ASGI entrypoint
 ├── apps/
-│   ├── core/                # Shared base models, pagination & utilities
+│   ├── core/                # Shared base models, responses, pagination & utilities
 │   │   ├── models.py        # BaseModel, SoftDeleteModel, UUIDModel, TimeStampedModel
-│   │   └── pagination.py    # StandardResultsSetPagination
+│   │   ├── responses.py     # Standardized ApiResponse wrapper
+│   │   ├── exceptions.py    # Global custom exception handler
+│   │   ├── pagination.py    # StandardResultsSetPagination
+│   │   └── tests/           # Response, exception handler & pagination tests
 │   ├── iam/                 # Identity & Access Management
 │   │   ├── models.py        # User, Role, Permission, UserGroup
 │   │   ├── managers.py      # UserManager (email + soft delete)

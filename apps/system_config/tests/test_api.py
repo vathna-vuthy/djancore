@@ -59,8 +59,8 @@ class SystemConfigAPITests(APITestCase):
         self.client.credentials()  # Unauthenticate
         public_resp = self.client.get(reverse("system_config:public"))
         self.assertEqual(public_resp.status_code, status.HTTP_200_OK)
-        self.assertEqual(public_resp.data["APP_TITLE"], "djancore Portal")
-        self.assertNotIn("SECRET_SALT", public_resp.data)
+        self.assertEqual(public_resp.data["data"]["APP_TITLE"], "djancore Portal")
+        self.assertNotIn("SECRET_SALT", public_resp.data["data"])
 
     def test_bulk_update_endpoint(self):
         """Test bulk updating multiple configuration values."""

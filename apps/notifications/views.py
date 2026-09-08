@@ -3,6 +3,7 @@ from rest_framework import generics, permissions, status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from apps.core.responses import ApiResponse
 from apps.notifications.models import NotificationLog, NotificationTemplate
 from apps.notifications.providers.registry import ProviderRegistry
 from apps.notifications.serializers import (
@@ -69,8 +70,8 @@ class NotificationTemplateViewSet(viewsets.ModelViewSet):
         """Restore a soft-deleted notification template."""
         template_obj = NotificationTemplate.all_objects.get(pk=pk)
         template_obj.restore()
-        return Response(
-            {"message": f"Template '{template_obj.code}' restored successfully."}
+        return ApiResponse.success(
+            message=f"Template '{template_obj.code}' restored successfully."
         )
 
 
@@ -113,20 +114,17 @@ class NotificationLogViewSet(viewsets.ReadOnlyModelViewSet):
         """Cancel a pending scheduled notification."""
         try:
             log = NotificationService.cancel_scheduled(pk)
-            return Response(
-                {
-                    "message": "Scheduled notification cancelled successfully.",
-                    "data": NotificationLogSerializer(log).data,
-                },
-                status=status.HTTP_200_OK,
+            return ApiResponse.success(
+                data=NotificationLogSerializer(log).data,
+                message="Scheduled notification cancelled successfully.",
             )
         except ValueError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        except NotificationLog.DoesNotExist:
-            return Response(
-                {"error": "Notification log not found."},
-                status=status.HTTP_404_NOT_FOUND,
+            return ApiResponse.error(
+                message=str(e),
+                status=status.HTTP_400_BAD_REQUEST,
             )
+        except NotificationLog.DoesNotExist:
+            return ApiResponse.not_found(message="Notification log not found.")
 
     @extend_schema(
         tags=["Notifications"],
@@ -144,20 +142,17 @@ class NotificationLogViewSet(viewsets.ReadOnlyModelViewSet):
 
         try:
             log = NotificationService.reschedule(pk, new_time)
-            return Response(
-                {
-                    "message": "Notification rescheduled successfully.",
-                    "data": NotificationLogSerializer(log).data,
-                },
-                status=status.HTTP_200_OK,
+            return ApiResponse.success(
+                data=NotificationLogSerializer(log).data,
+                message="Notification rescheduled successfully.",
             )
         except ValueError as e:
-            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        except NotificationLog.DoesNotExist:
-            return Response(
-                {"error": "Notification log not found."},
-                status=status.HTTP_404_NOT_FOUND,
+            return ApiResponse.error(
+                message=str(e),
+                status=status.HTTP_400_BAD_REQUEST,
             )
+        except NotificationLog.DoesNotExist:
+            return ApiResponse.not_found(message="Notification log not found.")
 
     @extend_schema(
         tags=["Notifications"],
@@ -171,18 +166,12 @@ class NotificationLogViewSet(viewsets.ReadOnlyModelViewSet):
         """Retry sending a notification immediately."""
         try:
             log = NotificationService.retry_failed(pk)
-            return Response(
-                {
-                    "message": "Notification retry dispatched.",
-                    "data": NotificationLogSerializer(log).data,
-                },
-                status=status.HTTP_200_OK,
+            return ApiResponse.success(
+                data=NotificationLogSerializer(log).data,
+                message="Notification retry dispatched.",
             )
         except NotificationLog.DoesNotExist:
-            return Response(
-                {"error": "Notification log not found."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
+            return ApiResponse.not_found(message="Notification log not found.")
 
 
 @extend_schema(
