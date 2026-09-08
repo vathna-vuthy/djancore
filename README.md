@@ -1,13 +1,33 @@
 # djancore
 
 Production-ready, modular Django & Django REST Framework application featuring:
-- **AWS IAM-inspired Identity & Access Management (`apps.iam`)**
-- **Dynamic System Configuration with Zero-Latency Caching (`apps.system_config`)**
-- **Multi-Channel Notification System & Scheduler (`apps.notifications`)**
-- **Soft-Delete Model Architecture (`apps.core`)**
-- **OpenAPI 3.0 & Swagger UI Documentation**
+- **[apps.core](file:///Users/vathnavuthy/Developer/djancore/apps/core/README.md)** - Foundational models, ApiResponse envelopes, exception handling, and pagination.
+- **[apps.iam](file:///Users/vathnavuthy/Developer/djancore/apps/iam/README.md)** - AWS IAM-inspired Identity & Access Management, policies, roles, and groups.
+- **[apps.two_factor](file:///Users/vathnavuthy/Developer/djancore/apps/two_factor/README.md)** - RFC 6238 TOTP two-factor authentication, backup recovery codes, and challenge tokens.
+- **[apps.throttling](file:///Users/vathnavuthy/Developer/djancore/apps/throttling/README.md)** - Dynamic sliding window rate limiting, token buckets, and IP abuse prevention.
+- **[apps.organizations](file:///Users/vathnavuthy/Developer/djancore/apps/organizations/README.md)** - Multi-tenancy workspaces, team invitations, and role hierarchies.
+- **[apps.api_keys](file:///Users/vathnavuthy/Developer/djancore/apps/api_keys/README.md)** - Developer API keys with prefix lookup, SHA-256 hashing, and scoped permissions.
+- **[apps.webhooks](file:///Users/vathnavuthy/Developer/djancore/apps/webhooks/README.md)** - Outbound webhook dispatcher with HMAC-SHA256 signatures and retry backoff.
+- **[apps.audit](file:///Users/vathnavuthy/Developer/djancore/apps/audit/README.md)** - Append-only immutable compliance trails, auto-generated messages, and diffs.
+- **[apps.notifications](file:///Users/vathnavuthy/Developer/djancore/apps/notifications/README.md)** - Multi-channel notifications (Email/Telegram), templating, and schedulers.
+- **[apps.system_config](file:///Users/vathnavuthy/Developer/djancore/apps/system_config/README.md)** - Dynamic runtime configuration with zero-latency caching.
 
 ---
+
+## App Documentation Index
+
+| App | Description | Documentation |
+|---|---|---|
+| `apps.core` | Base models, soft delete, ApiResponse envelope, and Scalar docs | [Read Core Docs](file:///Users/vathnavuthy/Developer/djancore/apps/core/README.md) |
+| `apps.iam` | AWS IAM-style granular permissions, roles, groups, and policy evaluation | [Read IAM Docs](file:///Users/vathnavuthy/Developer/djancore/apps/iam/README.md) |
+| `apps.two_factor` | RFC 6238 TOTP 2FA, single-use recovery codes, and login challenge | [Read 2FA Docs](file:///Users/vathnavuthy/Developer/djancore/apps/two_factor/README.md) |
+| `apps.throttling` | Sliding window rate limiting, multi-dimensional quotas, and IP blocklist | [Read Throttling Docs](file:///Users/vathnavuthy/Developer/djancore/apps/throttling/README.md) |
+| `apps.organizations` | Multi-tenancy workspaces, team invitations, and tenant model mixins | [Read Organizations Docs](file:///Users/vathnavuthy/Developer/djancore/apps/organizations/README.md) |
+| `apps.api_keys` | Developer API key authentication, prefix lookups, and IAM scoping | [Read API Keys Docs](file:///Users/vathnavuthy/Developer/djancore/apps/api_keys/README.md) |
+| `apps.webhooks` | Outbound webhooks dispatcher, HMAC-SHA256 signing, and retries | [Read Webhooks Docs](file:///Users/vathnavuthy/Developer/djancore/apps/webhooks/README.md) |
+| `apps.audit` | Immutable audit trails, before/after diffs, and X-Request-ID context | [Read Audit Docs](file:///Users/vathnavuthy/Developer/djancore/apps/audit/README.md) |
+| `apps.notifications` | Multi-channel dispatch (Email/Telegram), templating, and background workers | [Read Notifications Docs](file:///Users/vathnavuthy/Developer/djancore/apps/notifications/README.md) |
+| `apps.system_config` | Dynamic runtime settings with multi-type casting and 0-latency caching | [Read System Config Docs](file:///Users/vathnavuthy/Developer/djancore/apps/system_config/README.md) |
 
 ## Features
 
