@@ -56,7 +56,7 @@ class SystemConfig(BaseModel):
     )
 
     class Meta(BaseModel.Meta):
-        db_table = "system_configs"
+        db_table = "sysconf_configs"
         verbose_name = "system configuration"
         verbose_name_plural = "system configurations"
         ordering = ["group", "key"]
