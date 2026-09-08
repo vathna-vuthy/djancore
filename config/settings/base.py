@@ -54,6 +54,7 @@ LOCAL_APPS = [
     "apps.audit.apps.AuditConfig",
     "apps.organizations.apps.OrganizationsConfig",
     "apps.two_factor.apps.TwoFactorConfig",
+    "apps.throttling.apps.ThrottlingConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -67,6 +68,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "apps.audit.middleware.AuditMiddleware",
     "apps.organizations.middleware.TenantMiddleware",
+    "apps.throttling.middleware.ThrottlingMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -100,6 +102,17 @@ DATABASES = {
     )
 }
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)
+
+# Caches configuration (LocMemCache fallback or Redis)
+CACHES = {
+    "default": {
+        "BACKEND": env.str(
+            "CACHE_BACKEND",
+            default="django.core.cache.backends.locmem.LocMemCache",
+        ),
+        "LOCATION": env.str("CACHE_LOCATION", default="djancore-cache"),
+    }
+}
 
 # Custom User Model
 AUTH_USER_MODEL = "iam.User"
@@ -162,6 +175,9 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 20,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "EXCEPTION_HANDLER": "apps.core.exceptions.custom_exception_handler",
+    "DEFAULT_THROTTLE_CLASSES": [
+        "apps.throttling.throttles.DynamicRateThrottle",
+    ],
 }
 
 # drf-spectacular (OpenAPI 3 / Swagger) configuration
@@ -235,6 +251,12 @@ SPECTACULAR_SETTINGS = {
             "name": "Two-Factor Authentication",
             "description": (
                 "Time-Based One-Time Password (TOTP / RFC 6238) two-factor authentication and recovery codes."
+            ),
+        },
+        {
+            "name": "Throttling & Abuse Prevention",
+            "description": (
+                "Dynamic sliding window rate limiting, multi-dimensional quotas, and IP blacklists."
             ),
         },
     ],

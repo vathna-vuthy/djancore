@@ -18,6 +18,13 @@ Production-ready, modular Django & Django REST Framework application featuring:
   - Single-use, cryptographically random backup recovery codes with SHA-256 hash storage.
   - Time drift tolerance (±30s) and replay attack protection (`last_used_step`).
   - Seamless login challenge integration with signed short-lived challenge tokens (5-minute TTL).
+- **Throttling & Abuse Prevention Platform (`apps.throttling`)**:
+  - Multi-dimensional dynamic rate limiting supporting **IP**, **User**, **Organization Workspace**, and **Developer API Key** scopes.
+  - Sub-second precision **Sliding Window Counter** rate calculation backed by Django cache framework (Redis / LocMem).
+  - Configurable instantaneous **Burst Allowances** and URL path / HTTP method pattern filters.
+  - Dynamic database-driven **Throttling Rules** with 0-latency caching and instant admin invalidation.
+  - **IP Blocklist / Blacklist** defense mechanism with temporary expiration or permanent ban enforcement.
+  - Standard IETF Draft rate-limit response headers (`RateLimit-Limit`, `RateLimit-Remaining`, `RateLimit-Reset`, `Retry-After`).
 - **Multi-Tenancy & Workspaces (`apps.organizations`)**:
   - Full multi-tenant architecture with **Organizations**, **Memberships**, and granular role hierarchy (`OWNER`, `ADMIN`, `MEMBER`, `BILLING`, `VIEWER`).
   - Active workspace resolution via `TenantMiddleware` (`X-Organization-ID` / `X-Tenant-ID` header and slug routing).
@@ -145,6 +152,17 @@ djancore/
 │   │   ├── urls.py          # 2FA API routes
 │   │   ├── admin.py         # Django Admin with status badges & code count
 │   │   └── tests/           # RFC 6238, service & API integration tests
+│   ├── throttling/          # Rate Limiting & Abuse Prevention Platform
+│   │   ├── models.py        # ThrottlingRule, IPBlocklist, ThrottlingScope
+│   │   ├── engine.py        # SlidingWindowRateLimiter & Token Bucket math
+│   │   ├── services.py      # ThrottlingService & IP blocklist management
+│   │   ├── throttles.py     # DynamicRateThrottle DRF BaseThrottle
+│   │   ├── middleware.py    # ThrottlingMiddleware & RateLimit-* headers
+│   │   ├── serializers.py   # Rule, blocklist, and usage serializers
+│   │   ├── views.py         # ThrottlingRuleViewSet, IPBlocklistViewSet, UsageView
+│   │   ├── urls.py          # Throttling API routes
+│   │   ├── admin.py         # Django Admin with quick actions
+│   │   └── tests/           # Engine, service, middleware & API tests
 │   ├── notifications/       # Multi-Channel Notifications & Scheduling
 │   │   ├── models.py        # NotificationLog, NotificationTemplate
 │   │   ├── services.py      # NotificationService & Dispatcher
@@ -315,6 +333,19 @@ uv run python manage.py process_scheduled_notifications --daemon --interval 10
 | `POST` | `/api/v1/auth/2fa/disable/` | Disable 2FA with valid TOTP or recovery code | Yes |
 | `POST` | `/api/v1/auth/2fa/regenerate-codes/` | Regenerate 8 fresh backup recovery codes | Yes |
 | `POST` | `/api/v1/auth/2fa/challenge/` | Complete 2FA login challenge with token + code | No |
+
+### Throttling & Abuse Prevention (`/api/v1/throttling/`)
+
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET` | `/api/v1/throttling/usage/` | Inspect caller's current rate limit quota and remaining allowance | No |
+| `GET/POST` | `/api/v1/throttling/rules/` | List and define dynamic rate limiting rules | Yes (Admin) |
+| `GET/PATCH/DEL` | `/api/v1/throttling/rules/{id}/` | Inspect, update, or soft-delete rate limit rule | Yes (Admin) |
+| `POST` | `/api/v1/throttling/rules/{id}/restore/` | Restore soft-deleted throttling rule | Yes (Admin) |
+| `GET/POST` | `/api/v1/throttling/blocklist/` | List and add IP addresses to blocklist | Yes (Admin) |
+| `POST` | `/api/v1/throttling/blocklist/block/` | Quick block IP with optional duration expiration | Yes (Admin) |
+| `POST` | `/api/v1/throttling/blocklist/{id}/unblock/` | Unblock IP address | Yes (Admin) |
+| `DELETE` | `/api/v1/throttling/blocklist/{id}/` | Delete blocklist entry | Yes (Admin) |
 
 ### Policy Evaluation & IAM Resources (`/api/v1/iam/`)
 

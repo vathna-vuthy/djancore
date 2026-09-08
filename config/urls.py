@@ -1,7 +1,6 @@
 """URL Configuration for djancore."""
 
 from django.contrib import admin
-from django.http import JsonResponse
 from django.urls import include, path
 from drf_spectacular.utils import extend_schema
 from drf_spectacular.views import (
@@ -9,6 +8,9 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
+from rest_framework import permissions
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
 
 from apps.core.docs import SpectacularScalarView
 
@@ -18,9 +20,11 @@ from apps.core.docs import SpectacularScalarView
     summary="Health check",
     description="Returns the service health status.",
 )
+@api_view(["GET"])
+@permission_classes([permissions.AllowAny])
 def health_check(request):
     """Simple health check endpoint."""
-    return JsonResponse({"status": "healthy", "service": "djancore"})
+    return Response({"status": "healthy", "service": "djancore"})
 
 
 urlpatterns = [
@@ -72,5 +76,9 @@ urlpatterns = [
     path(
         "api/v1/auth/2fa/",
         include("apps.two_factor.urls", namespace="two_factor"),
+    ),
+    path(
+        "api/v1/throttling/",
+        include("apps.throttling.urls", namespace="throttling"),
     ),
 ]
