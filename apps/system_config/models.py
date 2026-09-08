@@ -4,6 +4,7 @@ from typing import Any
 from django.core.cache import cache
 from django.db import models
 
+from apps.core.crypto import ENCRYPTION_PREFIX, decrypt_string, encrypt_string
 from apps.core.models import BaseModel
 
 
@@ -27,7 +28,7 @@ class SystemConfig(BaseModel):
     raw_value = models.TextField(
         blank=True,
         default="",
-        help_text="Serialized string value.",
+        help_text="Serialized string value (encrypted at rest if is_secret=True).",
     )
     data_type = models.CharField(
         max_length=20,
@@ -47,7 +48,7 @@ class SystemConfig(BaseModel):
     )
     is_secret = models.BooleanField(
         default=False,
-        help_text="Mask value in APIs and logs to protect sensitive data.",
+        help_text="Mask value in APIs/logs and encrypt raw value at rest in database.",
     )
     is_public = models.BooleanField(
         default=False,
@@ -64,18 +65,26 @@ class SystemConfig(BaseModel):
         return f"{self.key} ({self.group}) = {self.masked_value if self.is_secret else self.raw_value}"
 
     @property
+    def raw_decrypted_value(self) -> str:
+        """Return decrypted raw string if secret, otherwise raw_value."""
+        if self.is_secret:
+            return decrypt_string(self.raw_value)
+        return self.raw_value
+
+    @property
     def typed_value(self) -> Any:
         """Return the configuration value cast to its appropriate Python type."""
-        return self.cast_value(self.raw_value, self.data_type)
+        return self.cast_value(self.raw_decrypted_value, self.data_type)
 
     @property
     def masked_value(self) -> str:
         """Return masked representation if the setting is marked as secret."""
         if not self.is_secret:
             return self.raw_value
-        if len(self.raw_value) <= 6:
+        decrypted = self.raw_decrypted_value
+        if len(decrypted) <= 6:
             return "******"
-        return f"{self.raw_value[:2]}******{self.raw_value[-2:]}"
+        return f"{decrypted[:2]}******{decrypted[-2:]}"
 
     @classmethod
     def cast_value(cls, value_str: str, data_type: str) -> Any:
@@ -116,7 +125,19 @@ class SystemConfig(BaseModel):
         return str(value)
 
     def save(self, *args, **kwargs):
-        """Save instance and invalidate cache."""
+        """Encrypt secret values and save instance, then invalidate cache."""
+        if (
+            self.is_secret
+            and self.raw_value
+            and not self.raw_value.startswith(ENCRYPTION_PREFIX)
+        ):
+            self.raw_value = encrypt_string(self.raw_value)
+        elif (
+            not self.is_secret
+            and self.raw_value
+            and self.raw_value.startswith(ENCRYPTION_PREFIX)
+        ):
+            self.raw_value = decrypt_string(self.raw_value)
         super().save(*args, **kwargs)
         self.invalidate_cache()
 

@@ -78,6 +78,32 @@ class ConfigServiceTests(TestCase):
         self.assertIn("******", cfg.masked_value)
         self.assertNotEqual(cfg.masked_value, "secret-key-123456789")
 
+    def test_secret_encryption_at_rest(self):
+        """Test secret config values are encrypted with AES/Fernet in the database."""
+        from apps.core.crypto import ENCRYPTION_PREFIX, decrypt_string, encrypt_string
+
+        # Test crypto functions directly
+        encrypted = encrypt_string("super-secret-123")
+        self.assertTrue(encrypted.startswith(ENCRYPTION_PREFIX))
+        self.assertEqual(decrypt_string(encrypted), "super-secret-123")
+
+        # Test SystemConfig model at-rest encryption
+        cfg = set_config(
+            "DATABASE_PASSWORD",
+            "p@ssw0rd123456",
+            is_secret=True,
+        )
+        # Raw value in database must be encrypted
+        self.assertTrue(cfg.raw_value.startswith(ENCRYPTION_PREFIX))
+        self.assertNotIn("p@ssw0rd123456", cfg.raw_value)
+
+        # Accessing typed_value or raw_decrypted_value returns plaintext
+        self.assertEqual(cfg.raw_decrypted_value, "p@ssw0rd123456")
+        self.assertEqual(cfg.typed_value, "p@ssw0rd123456")
+
+        # ConfigService returns plaintext to application code
+        self.assertEqual(get_config("DATABASE_PASSWORD"), "p@ssw0rd123456")
+
     def test_public_configs(self):
         """Test get_public_configs returns only public items."""
         set_config("SITE_NAME", "My App", is_public=True)

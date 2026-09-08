@@ -24,6 +24,7 @@ if env_file.exists():
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 DEBUG = env("DJANGO_DEBUG")
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
+SYSTEM_CONFIG_ENCRYPTION_KEY = env("SYSTEM_CONFIG_ENCRYPTION_KEY", default="")
 
 # Application definition
 DJANGO_APPS = [

@@ -46,9 +46,21 @@ class SystemConfigSerializer(serializers.ModelSerializer):
 
     def get_display_value(self, obj: SystemConfig) -> str:
         request = self.context.get("request")
-        if obj.is_secret and (not request or not request.user.is_superuser):
-            return obj.masked_value
+        if obj.is_secret:
+            if not request or not request.user.is_superuser:
+                return obj.masked_value
+            return obj.raw_decrypted_value
         return obj.raw_value
+
+    def to_representation(self, instance: SystemConfig) -> dict[str, Any]:
+        data = super().to_representation(instance)
+        request = self.context.get("request")
+        is_superuser = bool(request and request.user and request.user.is_superuser)
+        if instance.is_secret and not is_superuser:
+            data["raw_value"] = "******"
+        elif instance.is_secret and is_superuser:
+            data["raw_value"] = instance.raw_decrypted_value
+        return data
 
     def validate(self, attrs):
         data_type = attrs.get(
