@@ -105,9 +105,10 @@ Interactive API documentation is generated via `drf-spectacular`:
 - **Redoc UI**: [http://localhost:8000/api/redoc/](http://localhost:8000/api/redoc/)
 - **OpenAPI Schema**: [http://localhost:8000/api/schema/](http://localhost:8000/api/schema/)
 - **Health Check**: [http://localhost:8000/health/](http://localhost:8000/health/)
+- **Database Design & ERD**: [docs/database-design.md](docs/database-design.md)
 
 > [!TIP]
-> For complete endpoint tables, request/response schemas, and example payloads, refer to the individual [App Documentation](apps/core/README.md) linked in the table above.
+> For complete endpoint tables, request/response schemas, and example payloads, refer to the individual [App Documentation](apps/core/README.md) linked in the table above or the [Documentation Hub](docs/README.md).
 
 ---
 
