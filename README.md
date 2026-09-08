@@ -191,6 +191,7 @@ set_config("MAX_LOGIN_ATTEMPTS", 10, group="security", description="Max failed a
 | Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
 | `GET` | `/health/` | Health check endpoint | No |
+| `GET` | `/api/scalar/` | Scalar Interactive API Reference (Modern UI) | No |
 | `GET` | `/api/docs/` | Swagger UI Interactive API documentation | No |
 | `GET` | `/api/redoc/` | Redoc API documentation | No |
 | `GET` | `/api/schema/` | OpenAPI 3.0 YAML/JSON schema | No |

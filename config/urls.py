@@ -10,6 +10,8 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
+from apps.core.docs import SpectacularScalarView
+
 
 @extend_schema(
     tags=["Health"],
@@ -24,7 +26,7 @@ def health_check(request):
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("health/", health_check, name="health-check"),
-    # OpenAPI 3 and Swagger Documentation
+    # OpenAPI 3 and API Documentation
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/docs/",
@@ -35,6 +37,11 @@ urlpatterns = [
         "api/redoc/",
         SpectacularRedocView.as_view(url_name="schema"),
         name="redoc",
+    ),
+    path(
+        "api/scalar/",
+        SpectacularScalarView.as_view(url_name="schema"),
+        name="scalar",
     ),
     # API endpoints
     path("api/v1/iam/", include("apps.iam.urls", namespace="iam")),

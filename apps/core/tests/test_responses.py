@@ -137,3 +137,18 @@ class PaginationEnvelopeTest(TestCase):
         self.assertEqual(response.data["meta"]["page"], 1)
         self.assertEqual(response.data["meta"]["page_size"], 20)
         self.assertIsNotNone(response.data["meta"]["next"])
+
+
+class ScalarDocsViewTest(TestCase):
+    def test_scalar_view_renders_html(self):
+        from apps.core.docs import SpectacularScalarView
+
+        factory = RequestFactory()
+        request = factory.get("/api/scalar/")
+        view = SpectacularScalarView.as_view()
+        response = view(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/html", response["Content-Type"])
+        self.assertIn("@scalar/api-reference", response.content.decode("utf-8"))
+        self.assertIn("/api/schema/", response.content.decode("utf-8"))
