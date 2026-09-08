@@ -49,6 +49,7 @@ LOCAL_APPS = [
     "apps.iam.apps.IamConfig",
     "apps.system_config.apps.SystemConfigAppConfig",
     "apps.notifications.apps.NotificationsConfig",
+    "apps.api_keys.apps.ApiKeysConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -139,6 +140,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Django REST Framework configuration
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
+        "apps.api_keys.authentication.APIKeyAuthentication",
         "apps.core.authentication.BearerOrTokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
@@ -202,6 +204,12 @@ SPECTACULAR_SETTINGS = {
             "description": ("Permission definition with action, resource, and effect."),
         },
         {
+            "name": "API Keys",
+            "description": (
+                "Developer API key generation, inspection, rotation, revocation, and scoping."
+            ),
+        },
+        {
             "name": "Health",
             "description": "Service health check and status.",
         },
@@ -217,6 +225,20 @@ SPECTACULAR_SETTINGS = {
                 "Multi-channel notification dispatch, templating, scheduling, and delivery tracking."
             ),
         },
+    ],
+    "APPEND_COMPONENTS": {
+        "securitySchemes": {
+            "ApiKeyAuth": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "X-API-Key",
+                "description": "Developer API Key format: djc_live_...",
+            },
+        }
+    },
+    "SECURITY": [
+        {"BearerAuth": []},
+        {"ApiKeyAuth": []},
     ],
 }
 

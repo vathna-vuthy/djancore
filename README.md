@@ -11,6 +11,11 @@ Production-ready, modular Django & Django REST Framework application featuring:
 
 ## Features
 
+- **Developer API Keys (`apps.api_keys`)**:
+  - Secure, hashed API keys (`djc_live_...`) with instant prefix lookup ($O(1)$) and constant-time HMAC hash verification.
+  - Multi-factor protection: IP address whitelisting, optional expiration dates, and one-click active toggling.
+  - Scoped AWS IAM permission bindings for least-privilege key delegation.
+  - Complete key lifecycle management (create, list, inspect, rotate, revoke, restore).
 - **Multi-Channel Notifications & Scheduling (`apps.notifications`)**:
   - Modular provider architecture (`BaseNotificationProvider`, `ProviderRegistry`).
   - Out-of-the-box channels: **Email** (HTML + multipart fallback, `smtp4dev` integration) and **Telegram** (Bot API direct).
@@ -23,7 +28,7 @@ Production-ready, modular Django & Django REST Framework application featuring:
   - Runtime tunable settings instead of hardcoded environment variables.
   - Multi-type casting: `string`, `integer`, `float`, `boolean`, `json`.
   - Zero-latency caching layer with automated write invalidation.
-  - `is_secret` (masked in APIs and logs) and `is_public` (open to unauthenticated clients).
+  - `is_secret` (masked in APIs/logs, encrypted at rest via AES-128 Fernet) and `is_public` (open to unauthenticated clients).
   - Bulk updates & Admin cache purge actions.
 - **Standardized API Response Architecture (`apps.core`)**:
   - `ApiResponse` response envelope for uniform API outputs (`success`, `message`, `data`, `meta`, `errors`, `code`).
@@ -38,7 +43,7 @@ Production-ready, modular Django & Django REST Framework application featuring:
   - `SoftDeleteQuerySet`, `SoftDeleteManager`, `SoftDeleteModel`, and unified `BaseModel` (UUID + Timestamps + Soft-Delete).
   - API and Admin restore actions.
 - **Custom User Model**: Primary authentication using email (`USERNAME_FIELD = 'email'`) with audit timestamps and soft delete.
-- **OpenAPI 3.0 & Swagger UI**: Auto-generated interactive API schema and documentation powered by `drf-spectacular`.
+- **OpenAPI 3.0 & Scalar Documentation**: Auto-generated interactive API reference powered by `drf-spectacular` and `@scalar/api-reference`.
 - **Split Settings**: Dedicated `base.py`, `development.py`, `production.py`, and `test.py` configurations.
 - **Code Quality**: Pre-configured `ruff` linter/formatter and `pyright` type checker.
 
@@ -63,7 +68,16 @@ djancore/
 │   │   ├── responses.py     # Standardized ApiResponse wrapper
 │   │   ├── exceptions.py    # Global custom exception handler
 │   │   ├── pagination.py    # StandardResultsSetPagination
+│   │   ├── crypto.py        # Symmetric AES/Fernet encryption
+│   │   ├── docs.py          # Scalar API Reference view
 │   │   └── tests/           # Response, exception handler & pagination tests
+│   ├── api_keys/            # Developer API Keys & Authentication
+│   │   ├── models.py        # APIKey (prefix + SHA-256 hash + IAM scopes)
+│   │   ├── authentication.py# APIKeyAuthentication (X-API-Key / Api-Key)
+│   │   ├── serializers.py   # Key serializers & rotation schemas
+│   │   ├── views.py         # APIKeyViewSet & lifecycle actions
+│   │   ├── urls.py          # API key routes
+│   │   └── tests/           # Model, auth & integration tests
 │   ├── iam/                 # Identity & Access Management
 │   │   ├── models.py        # User, Role, Permission, UserGroup
 │   │   ├── managers.py      # UserManager (email + soft delete)
@@ -73,8 +87,13 @@ djancore/
 │   │   ├── views.py         # REST ViewSets & evaluation endpoints
 │   │   ├── urls.py          # IAM API routes
 │   │   └── tests/           # Unit, evaluator & API integration tests
+│   ├── notifications/       # Multi-Channel Notifications & Scheduling
+│   │   ├── models.py        # NotificationLog, NotificationTemplate
+│   │   ├── services.py      # NotificationService & Dispatcher
+│   │   ├── providers/       # Email & Telegram providers
+│   │   └── views.py         # Templates, Logs & Dispatch endpoints
 │   └── system_config/       # Standalone dynamic configuration
-│       ├── models.py        # SystemConfig
+│       ├── models.py        # SystemConfig (encrypted at rest)
 │       ├── services.py      # ConfigService & typed getters
 │       ├── serializers.py   # Config & bulk update serializers
 │       ├── views.py         # ViewSet, public & bulk views
@@ -131,59 +150,6 @@ uv run python manage.py process_scheduled_notifications --daemon --interval 10
 
 ---
 
-## Python API: Using Notifications in Code
-
-```python
-import datetime
-from django.utils import timezone
-from apps.notifications.services import NotificationService
-
-# 1. Direct immediate dispatch
-log = NotificationService.send(
-    recipient="user@example.com",
-    channel="email",
-    subject="Welcome to Djancore",
-    body="Your account is ready to use!",
-)
-
-# 2. Template-rendered scheduled delivery
-future_time = timezone.now() + datetime.timedelta(hours=24)
-scheduled_log = NotificationService.send_template(
-    recipient="12345678",  # Telegram chat_id
-    template_code="SUBSCRIPTION_REMINDER",
-    context={"username": "Alice", "days_left": 3},
-    scheduled_for=future_time,
-)
-
-# 3. Reschedule or Cancel
-NotificationService.reschedule(scheduled_log.id, timezone.now() + datetime.timedelta(days=2))
-NotificationService.cancel_scheduled(scheduled_log.id)
-```
-
----
-
-## Python API: Using System Config in Code
-
-```python
-from apps.system_config.services import (
-    get_config,
-    get_bool_config,
-    get_int_config,
-    get_json_config,
-    set_config,
-)
-
-# Reading configuration with fallback defaults (zero DB queries when cached)
-max_login = get_int_config("MAX_LOGIN_ATTEMPTS", default=5)
-maintenance = get_bool_config("MAINTENANCE_MODE", default=False)
-features = get_json_config("ENABLED_FEATURES", default=["auth", "billing"])
-
-# Setting or updating configuration at runtime
-set_config("MAX_LOGIN_ATTEMPTS", 10, group="security", description="Max failed attempts")
-```
-
----
-
 ## API Endpoints
 
 ### Documentation & Health
@@ -195,6 +161,16 @@ set_config("MAX_LOGIN_ATTEMPTS", 10, group="security", description="Max failed a
 | `GET` | `/api/docs/` | Swagger UI Interactive API documentation | No |
 | `GET` | `/api/redoc/` | Redoc API documentation | No |
 | `GET` | `/api/schema/` | OpenAPI 3.0 YAML/JSON schema | No |
+
+### Developer API Keys (`/api/v1/api-keys/`)
+
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET/POST` | `/api/v1/api-keys/` | List and generate new Developer API Keys | Yes |
+| `GET/PATCH` | `/api/v1/api-keys/{id}/` | Inspect & update API key metadata/scopes | Yes |
+| `DELETE` | `/api/v1/api-keys/{id}/` | Revoke (soft-delete) an API key | Yes |
+| `POST` | `/api/v1/api-keys/{id}/rotate/` | Rotate secret key, invalidating prior secret | Yes |
+| `POST` | `/api/v1/api-keys/{id}/restore/` | Restore revoked API key | Yes |
 
 ### Dynamic System Configuration (`/api/v1/system-config/`)
 

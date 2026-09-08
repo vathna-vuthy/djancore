@@ -53,4 +53,8 @@ urlpatterns = [
         "api/v1/notifications/",
         include("apps.notifications.urls", namespace="notifications"),
     ),
+    path(
+        "api/v1/api-keys/",
+        include("apps.api_keys.urls", namespace="api_keys"),
+    ),
 ]

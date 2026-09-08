@@ -17,7 +17,10 @@ class HasIAMPermission(permissions.BasePermission):
         if not request.user or not request.user.is_authenticated:
             return False
 
-        if getattr(request.user, "is_superuser", False):
+        auth_obj = getattr(request, "auth", None)
+        api_key = auth_obj if hasattr(auth_obj, "prefix") else None
+
+        if getattr(request.user, "is_superuser", False) and api_key is None:
             return True
 
         action = getattr(view, "required_iam_action", None)
@@ -28,7 +31,9 @@ class HasIAMPermission(permissions.BasePermission):
             action = f"{basename}:{action_name}"
 
         resource = getattr(view, "required_iam_resource", "*")
-        return IAMService.evaluate_permission(request.user, action, resource)
+        return IAMService.evaluate_permission(
+            request.user, action, resource, api_key=api_key
+        )
 
 
 class IsAdminOrHasIAMPermission(permissions.BasePermission):

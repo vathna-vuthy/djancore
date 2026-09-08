@@ -41,39 +41,69 @@ class IAMService:
         )
 
     @classmethod
+    def get_api_key_effective_permissions(cls, api_key: Any) -> list[Permission]:
+        """Aggregate and return all direct and role-based permissions attached to an API key."""
+        if not api_key:
+            return []
+        query = Q(api_keys=api_key) | Q(
+            roles__api_keys=api_key, roles__is_deleted=False
+        )
+        return list(
+            Permission.objects.filter(query, is_deleted=False)
+            .distinct()
+            .order_by("name")
+        )
+
+    @classmethod
     def evaluate_permission(
         cls,
         user: Any,
         action: str,
         resource: str = "*",
+        api_key: Any = None,
     ) -> bool:
         """
-        Evaluate if a user is permitted to perform the specified action on the resource.
+        Evaluate if a user (and optional scoped API key) is permitted to perform the specified action.
 
-        Evaluation Logic (AWS IAM compliant):
+        Evaluation Logic:
         1. Inactive or unauthenticated user -> Denied.
-        2. Superuser -> Allowed.
-        3. Match all user's effective permissions against action and resource.
-        4. Explicit DENY -> Denied (overrides any ALLOW).
-        5. Explicit ALLOW -> Allowed.
-        6. Default -> Denied.
+        2. If API Key has scoped permissions/roles, it must evaluate to ALLOW with no explicit DENY.
+        3. Superuser -> Allowed (unless blocked by scoped API Key).
+        4. Match user's effective permissions against action and resource.
+        5. Explicit DENY -> Denied.
+        6. Explicit ALLOW -> Allowed.
+        7. Default -> Denied.
         """
         if not user or not user.is_authenticated or not user.is_active:
             return False
 
+        # If API key is provided and has custom scopes, evaluate API key permission envelope
+        if api_key is not None:
+            key_perms = cls.get_api_key_effective_permissions(api_key)
+            if key_perms:
+                key_allowed = False
+                for perm in key_perms:
+                    if cls.match_pattern(perm.action, action) and cls.match_pattern(
+                        perm.resource, resource
+                    ):
+                        if perm.effect == EffectChoices.DENY:
+                            return False
+                        if perm.effect == EffectChoices.ALLOW:
+                            key_allowed = True
+                if not key_allowed:
+                    return False
+
         if getattr(user, "is_superuser", False):
             return True
 
-        permissions = cls.get_user_effective_permissions(user)
-
+        user_perms = cls.get_user_effective_permissions(user)
         has_allow = False
 
-        for perm in permissions:
+        for perm in user_perms:
             if cls.match_pattern(perm.action, action) and cls.match_pattern(
                 perm.resource, resource
             ):
                 if perm.effect == EffectChoices.DENY:
-                    # Explicit DENY always takes precedence
                     return False
                 if perm.effect == EffectChoices.ALLOW:
                     has_allow = True
