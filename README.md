@@ -1,9 +1,17 @@
 # djancore
 
-Enterprise-grade, modular Django & Django REST Framework foundation designed for scalable SaaS and API platforms.
+Enterprise-grade, modular Django & Django REST Framework starter template designed for scalable SaaS and API platforms.
+
+[![Use this template](https://img.shields.io/badge/GitHub-Use_this_template-2ea44f?style=for-the-badge&logo=github)](https://github.com/vathna-vuthy/djancore/generate)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
+[![Python: 3.14+](https://img.shields.io/badge/Python-3.14+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![Django: 6.1+](https://img.shields.io/badge/Django-6.1+-092E20?style=for-the-badge&logo=django&logoColor=white)](https://www.djangoproject.com/)
+
+---
 
 ## 📑 Table of Contents
 
+- [Using as a Starter Template](#-using-as-a-starter-template)
 - [Architecture & Apps](#-architecture--apps)
 - [Quickstart](#-quickstart)
 - [API Documentation & Reference](#-api-documentation--reference)
@@ -12,6 +20,24 @@ Enterprise-grade, modular Django & Django REST Framework foundation designed for
 - [License & Contributing](#-license--contributing)
 
 ---
+
+## ⚡ Using as a Starter Template
+
+You can use **djancore** directly as the starting point for your new project:
+
+### Option 1: GitHub Template (Recommended)
+Click the green **[Use this template](https://github.com/vathna-vuthy/djancore/generate)** button at the top of the GitHub repository to create a fresh repository with clean git history.
+
+### Option 2: Clone with Clean History
+```bash
+# Clone the repository
+git clone --depth=1 https://github.com/vathna-vuthy/djancore.git my-project
+
+# Enter directory and initialize your own repository
+cd my-project
+rm -rf .git
+git init
+```
 
 ## 📦 Architecture & Apps
 
