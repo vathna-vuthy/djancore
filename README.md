@@ -21,6 +21,12 @@ Production-ready, modular Django & Django REST Framework application featuring:
   - Cryptographic **HMAC-SHA256** payload signing (`X-Djancore-Signature: t={timestamp},v1={sig}`) with anti-replay timestamp protection.
   - Real-time delivery engine with automated exponential retry backoff, response latency tracking, and HTTP status/body logging.
   - Interactive connectivity test ping (`/ping/`) and one-click signing secret rotation (`/rotate-secret/`).
+- **Immutable Audit Trails (`apps.audit`)**:
+  - Append-only compliance logging for all critical security events, model mutations, and API transactions.
+  - Auto-generated **human-readable event messages** (`Actor alice@example.com updated SystemConfig 'ENABLE_SIGNUPS' (Fields modified: value)`).
+  - Automated **before/after state diff tracking** with built-in masking of sensitive fields (passwords, tokens, secret keys).
+  - Thread-local context tracking via `AuditMiddleware` capturing actor, IP address, user-agent, and `X-Request-ID` correlation.
+  - Model lifecycle mixin (`AuditableModelMixin`) and programmatic logger (`AuditService.record`).
 - **Multi-Channel Notifications & Scheduling (`apps.notifications`)**:
   - Modular provider architecture (`BaseNotificationProvider`, `ProviderRegistry`).
   - Out-of-the-box channels: **Email** (HTML + multipart fallback, `smtp4dev` integration) and **Telegram** (Bot API direct).
@@ -90,6 +96,15 @@ djancore/
 │   │   ├── views.py         # WebhookEndpointViewSet & WebhookDeliveryViewSet
 │   │   ├── urls.py          # Webhook API routes
 │   │   └── tests/           # Model, HMAC signing & API integration tests
+│   ├── audit/               # Immutable Audit Trails & Compliance Logging
+│   │   ├── models.py        # AuditLog (append-only + auto-generated message)
+│   │   ├── services.py      # AuditService (diff calculator + masking)
+│   │   ├── middleware.py    # AuditMiddleware (context & X-Request-ID)
+│   │   ├── mixins.py        # AuditableModelMixin
+│   │   ├── serializers.py   # Audit log serializers
+│   │   ├── views.py         # AuditLogViewSet
+│   │   ├── urls.py          # Audit API routes
+│   │   └── tests/           # Model, middleware, service & API tests
 │   ├── iam/                 # Identity & Access Management
 │   │   ├── models.py        # User, Role, Permission, UserGroup
 │   │   ├── managers.py      # UserManager (email + soft delete)
@@ -197,6 +212,13 @@ uv run python manage.py process_scheduled_notifications --daemon --interval 10
 | `GET` | `/api/v1/webhooks/deliveries/` | List outbound delivery attempt audit logs | Yes |
 | `GET` | `/api/v1/webhooks/deliveries/{id}/` | Detailed delivery log with headers & body | Yes |
 | `POST` | `/api/v1/webhooks/deliveries/{id}/retry/` | Manually retry a failed delivery attempt | Yes |
+
+### Immutable Audit Trails (`/api/v1/audit/`)
+
+| Method | Endpoint | Description | Auth Required |
+|---|---|---|---|
+| `GET` | `/api/v1/audit/logs/` | List and filter immutable compliance audit trails | Yes |
+| `GET` | `/api/v1/audit/logs/{id}/` | Inspect audit log with before/after diffs & message | Yes |
 
 ### Dynamic System Configuration (`/api/v1/system-config/`)
 

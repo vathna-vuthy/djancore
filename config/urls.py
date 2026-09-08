@@ -61,4 +61,8 @@ urlpatterns = [
         "api/v1/webhooks/",
         include("apps.webhooks.urls", namespace="webhooks"),
     ),
+    path(
+        "api/v1/audit/",
+        include("apps.audit.urls", namespace="audit"),
+    ),
 ]
