@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.1](https://github.com/vathna-vuthy/djancore/compare/djancore-v0.2.0...djancore-v0.2.1) (2026-09-08)
+
+
+### Documentation
+
+* add comprehensive database design schema and ERD documentation ([eba09c0](https://github.com/vathna-vuthy/djancore/commit/eba09c0e5de43abf515a1c6d858465a052dbb3af))
+
 ## [0.2.0](https://github.com/vathna-vuthy/djancore/compare/djancore-v0.1.0...djancore-v0.2.0) (2026-09-08)
 
 
