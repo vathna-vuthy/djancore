@@ -1,0 +1,59 @@
+name: 🐛 Bug Report
+description: Report an issue or unexpected behavior in djancore
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report an issue! Please provide as much context as possible.
+
+  - type: input
+    id: app
+    attributes:
+      label: Affected App / Module
+      description: Which app or module is experiencing the issue?
+      placeholder: "e.g. apps.iam, apps.two_factor, apps.throttling, config"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: What happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Detailed steps to reproduce the issue.
+      placeholder: |
+        1. Run `...`
+        2. Make API call to `...`
+        3. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Environment & Traceback
+      description: Python version, OS, logs, or error traceback.
+      render: shell
+      placeholder: |
+        Python 3.14
+        PostgreSQL 16
+        Traceback (most recent call last):
+          ...
