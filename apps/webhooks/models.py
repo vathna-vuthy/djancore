@@ -67,6 +67,7 @@ class WebhookEndpoint(BaseModel):
     )
 
     class Meta:
+        db_table = "webhook_endpoints"
         ordering = ["-created_at"]
         verbose_name = "Webhook Endpoint"
         verbose_name_plural = "Webhook Endpoints"
@@ -190,6 +191,7 @@ class WebhookDelivery(BaseModel):
     )
 
     class Meta:
+        db_table = "webhook_deliveries"
         ordering = ["-created_at"]
         verbose_name = "Webhook Delivery"
         verbose_name_plural = "Webhook Deliveries"

@@ -121,6 +121,7 @@ class AuditLog(models.Model):
     objects = ImmutableManager()
 
     class Meta:
+        db_table = "audit_logs"
         ordering = ["-created_at"]
         verbose_name = "Audit Log"
         verbose_name_plural = "Audit Logs"

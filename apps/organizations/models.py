@@ -69,6 +69,7 @@ class Organization(BaseModel):
     )
 
     class Meta:
+        db_table = "org_organizations"
         ordering = ["name"]
         verbose_name = "Organization"
         verbose_name_plural = "Organizations"
@@ -142,6 +143,7 @@ class OrganizationMember(BaseModel):
     )
 
     class Meta:
+        db_table = "org_members"
         ordering = ["-joined_at"]
         verbose_name = "Organization Member"
         verbose_name_plural = "Organization Members"
@@ -208,6 +210,7 @@ class OrganizationInvitation(BaseModel):
     )
 
     class Meta:
+        db_table = "org_invitations"
         ordering = ["-created_at"]
         verbose_name = "Organization Invitation"
         verbose_name_plural = "Organization Invitations"

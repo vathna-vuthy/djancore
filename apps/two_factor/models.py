@@ -40,6 +40,7 @@ class TOTPDevice(BaseModel):
     )
 
     class Meta:
+        db_table = "twofa_devices"
         ordering = ["-created_at"]
         verbose_name = "TOTP 2FA Device"
         verbose_name_plural = "TOTP 2FA Devices"
@@ -113,6 +114,7 @@ class RecoveryCode(BaseModel):
     )
 
     class Meta:
+        db_table = "twofa_recovery_codes"
         ordering = ["-created_at"]
         verbose_name = "2FA Recovery Code"
         verbose_name_plural = "2FA Recovery Codes"

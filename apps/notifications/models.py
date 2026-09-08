@@ -46,7 +46,7 @@ class NotificationTemplate(BaseModel):
     is_active = models.BooleanField(default=True)
 
     class Meta(BaseModel.Meta):
-        db_table = "notification_templates"
+        db_table = "noti_templates"
         verbose_name = "notification template"
         verbose_name_plural = "notification templates"
         ordering = ["channel", "code"]
@@ -105,7 +105,7 @@ class NotificationLog(BaseModel):
     )
 
     class Meta(BaseModel.Meta):
-        db_table = "notification_logs"
+        db_table = "noti_logs"
         verbose_name = "notification log"
         verbose_name_plural = "notification logs"
         ordering = ["-created_at"]

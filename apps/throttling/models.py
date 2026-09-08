@@ -65,6 +65,7 @@ class ThrottlingRule(BaseModel):
     )
 
     class Meta:
+        db_table = "throttle_rules"
         ordering = ["-created_at"]
         verbose_name = "Throttling Rule"
         verbose_name_plural = "Throttling Rules"
@@ -99,6 +100,7 @@ class IPBlocklist(BaseModel):
     )
 
     class Meta:
+        db_table = "throttle_ip_blocklist"
         ordering = ["-created_at"]
         verbose_name = "IP Blocklist Entry"
         verbose_name_plural = "IP Blocklist Entries"

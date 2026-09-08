@@ -97,7 +97,7 @@ class UserGroup(BaseModel):
     )
 
     class Meta(BaseModel.Meta):
-        db_table = "iam_user_groups"
+        db_table = "iam_groups"
         verbose_name = "user group"
         verbose_name_plural = "user groups"
 
