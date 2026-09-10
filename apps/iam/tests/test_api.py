@@ -23,7 +23,7 @@ class IAMAPITests(APITestCase):
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token}")
 
     def test_user_registration_and_login(self):
-        """Test public registration and login."""
+        """Test public registration and login with email and username."""
         self.client.credentials()  # Unauthenticate
         reg_data = {
             "email": "newuser@example.com",
@@ -36,12 +36,29 @@ class IAMAPITests(APITestCase):
         self.assertEqual(reg_resp.status_code, status.HTTP_201_CREATED)
         self.assertIn("token", reg_resp.data)
 
-        # Login
-        login_resp = self.client.post(
+        # 1. Login with email field
+        login_resp_email = self.client.post(
+            reverse("iam:login"),
+            {"email": "newuser@example.com", "password": "StrongPassword123!"},
+        )
+        self.assertEqual(login_resp_email.status_code, status.HTTP_200_OK)
+        self.assertIn("token", login_resp_email.data)
+        self.assertEqual(login_resp_email.data["user"]["email"], "newuser@example.com")
+
+        # 2. Login with legacy username field
+        login_resp_user = self.client.post(
             reverse("iam:login"),
             {"username": "newuser@example.com", "password": "StrongPassword123!"},
         )
-        self.assertEqual(login_resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(login_resp_user.status_code, status.HTTP_200_OK)
+        self.assertIn("token", login_resp_user.data)
+
+        # 3. Login with wrong password
+        login_resp_fail = self.client.post(
+            reverse("iam:login"),
+            {"email": "newuser@example.com", "password": "WrongPassword!"},
+        )
+        self.assertEqual(login_resp_fail.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_permission_crud_and_soft_delete(self):
         """Test creating, deleting, and restoring a permission."""

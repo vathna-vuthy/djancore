@@ -1,4 +1,4 @@
-from django.contrib.auth import get_user_model
+from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
@@ -6,6 +6,63 @@ from apps.iam.models import Permission, Role, UserGroup
 from apps.iam.services import IAMService
 
 User = get_user_model()
+
+
+class LoginSerializer(serializers.Serializer):
+    """Serializer for user authentication supporting email and username."""
+
+    email = serializers.CharField(
+        required=False,
+        help_text="User email address.",
+    )
+    username = serializers.CharField(
+        required=False,
+        write_only=True,
+        help_text="Alternative to email.",
+    )
+    password = serializers.CharField(
+        write_only=True,
+        required=True,
+        style={"input_type": "password"},
+        trim_whitespace=False,
+        help_text="User password.",
+    )
+
+    def validate(self, attrs):
+        email_or_username = attrs.get("email") or attrs.get("username")
+        password = attrs.get("password")
+
+        if not email_or_username:
+            raise serializers.ValidationError(
+                {"email": "Email address or username is required."}
+            )
+
+        if not password:
+            raise serializers.ValidationError({"password": "Password is required."})
+
+        request = self.context.get("request")
+        user = authenticate(
+            request=request,
+            email=email_or_username,
+            password=password,
+        )
+        if user is None:
+            user = authenticate(
+                request=request,
+                username=email_or_username,
+                password=password,
+            )
+
+        if user is None:
+            raise serializers.ValidationError(
+                "Unable to log in with provided credentials."
+            )
+
+        if not user.is_active:
+            raise serializers.ValidationError("User account is disabled.")
+
+        attrs["user"] = user
+        return attrs
 
 
 class PermissionSerializer(serializers.ModelSerializer):

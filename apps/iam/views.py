@@ -12,6 +12,7 @@ from apps.iam.permissions import IsAdminOrHasIAMPermission
 from apps.iam.serializers import (
     ChangePasswordSerializer,
     EvaluatePermissionSerializer,
+    LoginSerializer,
     PermissionSerializer,
     RoleDetailSerializer,
     RoleSerializer,
@@ -56,9 +57,13 @@ class RegisterView(generics.CreateAPIView):
     tags=["IAM - Authentication"],
     summary="User login",
     description="Authenticate user with email and password, returning an auth token.",
+    request=LoginSerializer,
 )
 class CustomAuthToken(ObtainAuthToken):
     """API endpoint for user login returning auth token and user profile."""
+
+    serializer_class = LoginSerializer
+    permission_classes = [permissions.AllowAny]
 
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(
