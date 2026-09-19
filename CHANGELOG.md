@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.2](https://github.com/vathna-vuthy/djancore/compare/djancore-v0.2.1...djancore-v0.2.2) (2026-09-12)
+
+
+### Bug Fixes
+
+* **iam:** allow login with email or username in LoginSerializer ([d7a8e87](https://github.com/vathna-vuthy/djancore/commit/d7a8e87fa1a737d427034bc160d1fc5e8e37a344))
+
 ## [0.2.1](https://github.com/vathna-vuthy/djancore/compare/djancore-v0.2.0...djancore-v0.2.1) (2026-09-08)
 
 
