@@ -35,8 +35,12 @@ class TwoFactorService:
         """
         raw_secret = TOTP.generate_secret(20)
 
-        # Get or create TOTP device
-        device, _ = TOTPDevice.objects.get_or_create(user=user)
+        # Get or create TOTP device. all_objects is required because disable_2fa()
+        # soft-deletes the device while the OneToOne unique constraint still holds.
+        device, _ = TOTPDevice.all_objects.get_or_create(
+            user=user, defaults={"encrypted_secret": ""}
+        )
+        device.restore()
         device.set_secret(raw_secret)
         device.is_confirmed = False
         device.last_used_step = None
@@ -199,7 +203,8 @@ class TwoFactorService:
             if not user_id:
                 return None
             return User.objects.filter(id=user_id, is_active=True).first()
-        except signing.BadSignature, signing.SignatureExpired, Exception:
+        # BadSignature, SignatureExpired, and any malformed payload resolve to None
+        except Exception:
             return None
 
     @classmethod
