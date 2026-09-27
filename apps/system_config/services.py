@@ -48,7 +48,9 @@ class ConfigService:
         val = cls.get(key, default)
         try:
             return int(val)
-        except ValueError, TypeError:
+        except ValueError:
+            return default
+        except TypeError:
             return default
 
     @classmethod
@@ -57,7 +59,9 @@ class ConfigService:
         val = cls.get(key, default)
         try:
             return float(val)
-        except ValueError, TypeError:
+        except ValueError:
+            return default
+        except TypeError:
             return default
 
     @classmethod
@@ -69,7 +73,9 @@ class ConfigService:
         if isinstance(val, str):
             try:
                 return json.loads(val)
-            except json.JSONDecodeError, TypeError:
+            except json.JSONDecodeError:
+                return default
+            except TypeError:
                 return default
         return val if val is not None else default
 

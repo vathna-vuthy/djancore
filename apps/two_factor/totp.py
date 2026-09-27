@@ -61,7 +61,9 @@ class TOTP:
         Supports clock drift tolerance (±window steps) and replay prevention.
         """
         clean_code = str(code).strip()
-        if len(clean_code) != cls.DIGITS or not clean_code.isdigit():
+        if len(clean_code) != cls.DIGITS or not clean_code.isascii():
+            return False, None
+        if not clean_code.isdigit():
             return False, None
 
         current_step = int(time.time() // cls.INTERVAL)

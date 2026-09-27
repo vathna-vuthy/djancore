@@ -95,19 +95,25 @@ class SystemConfig(BaseModel):
         if data_type == ConfigDataType.INTEGER:
             try:
                 return int(value_str)
-            except ValueError, TypeError:
+            except ValueError:
+                return 0
+            except TypeError:
                 return 0
         elif data_type == ConfigDataType.FLOAT:
             try:
                 return float(value_str)
-            except ValueError, TypeError:
+            except ValueError:
+                return 0.0
+            except TypeError:
                 return 0.0
         elif data_type == ConfigDataType.BOOLEAN:
             return value_str.strip().lower() in ("true", "1", "t", "yes", "y", "on")
         elif data_type == ConfigDataType.JSON:
             try:
                 return json.loads(value_str)
-            except json.JSONDecodeError, TypeError:
+            except json.JSONDecodeError:
+                return None
+            except TypeError:
                 return None
         return value_str
 
