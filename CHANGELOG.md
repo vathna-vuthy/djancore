@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.2.3](https://github.com/vathna-vuthy/djancore/compare/djancore-v0.2.2...djancore-v0.2.3) (2026-09-27)
+
+
+### Bug Fixes
+
+* **2fa,system_config:** harden 2FA lifecycle and fix exception handling ([d1bfd5a](https://github.com/vathna-vuthy/djancore/commit/d1bfd5ad05b264f226a53451bbc1c74ea548e1bf))
+
 ## [0.2.2](https://github.com/vathna-vuthy/djancore/compare/djancore-v0.2.1...djancore-v0.2.2) (2026-09-12)
 
 
