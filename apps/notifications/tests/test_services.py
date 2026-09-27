@@ -1,6 +1,8 @@
 import datetime
+from unittest.mock import MagicMock, patch
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AnonymousUser
 from django.core import mail
 from django.test import TestCase
 from django.utils import timezone
@@ -11,6 +13,7 @@ from apps.notifications.models import (
     NotificationLog,
     NotificationTemplate,
 )
+from apps.notifications.providers.base import NotificationResult
 from apps.notifications.services import NotificationService
 
 User = get_user_model()
@@ -159,3 +162,206 @@ class NotificationServiceTest(TestCase):
         self.template.restore()
         self.assertFalse(self.template.is_deleted)
         self.assertEqual(NotificationTemplate.objects.count(), 1)
+
+    def test_render_content_empty_returns_empty(self):
+        self.assertEqual(NotificationService.render_content("", {"a": 1}), "")
+
+    def test_render_content_malformed_returns_raw_string(self):
+        malformed = "{{ unclosed"
+        self.assertEqual(NotificationService.render_content(malformed, {}), malformed)
+
+    def test_send_anonymous_user_stored_as_null(self):
+        log = NotificationService.send(
+            recipient="anon@example.com",
+            channel=ChannelChoices.EMAIL,
+            subject="Anon",
+            body="Anon Body",
+            user=AnonymousUser(),
+        )
+        self.assertIsNone(log.user)
+        self.assertEqual(log.status, DeliveryStatus.SENT)
+
+    def test_send_past_scheduled_for_dispatches_immediately(self):
+        past_time = timezone.now() - datetime.timedelta(hours=1)
+        log = NotificationService.send(
+            recipient="past@example.com",
+            channel=ChannelChoices.EMAIL,
+            subject="Past Schedule",
+            body="Past Body",
+            scheduled_for=past_time,
+        )
+        self.assertEqual(log.status, DeliveryStatus.SENT)
+        self.assertIsNone(log.scheduled_for)
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_send_template_inactive_template_fails(self):
+        self.template.is_active = False
+        self.template.save(update_fields=["is_active"])
+
+        with self.assertRaises(ValueError):
+            NotificationService.send_template(
+                recipient="bob@example.com",
+                template_code="WELCOME_EMAIL",
+            )
+
+    def test_send_template_scheduled_future_not_dispatched(self):
+        future_time = timezone.now() + datetime.timedelta(hours=3)
+        log = NotificationService.send_template(
+            recipient="bob@example.com",
+            template_code="WELCOME_EMAIL",
+            context={"app_name": "Djancore", "username": "bob"},
+            scheduled_for=future_time,
+        )
+        self.assertEqual(log.status, DeliveryStatus.SCHEDULED)
+        self.assertEqual(log.scheduled_for, future_time)
+        self.assertEqual(log.template, self.template)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_cancel_nonexistent_log_raises(self):
+        with self.assertRaises(NotificationLog.DoesNotExist):
+            NotificationService.cancel_scheduled("00000000-0000-0000-0000-000000000000")
+
+    def test_reschedule_nonexistent_log_raises(self):
+        with self.assertRaises(NotificationLog.DoesNotExist):
+            NotificationService.reschedule(
+                "00000000-0000-0000-0000-000000000000",
+                timezone.now() + datetime.timedelta(hours=1),
+            )
+
+    def test_retry_nonexistent_log_raises(self):
+        with self.assertRaises(NotificationLog.DoesNotExist):
+            NotificationService.retry_failed("00000000-0000-0000-0000-000000000000")
+
+    def test_retry_cancelled_log_dispatches(self):
+        log = NotificationLog.objects.create(
+            recipient="cancelled@example.com",
+            channel=ChannelChoices.EMAIL,
+            subject="Cancelled",
+            body="Cancelled Body",
+            status=DeliveryStatus.CANCELLED,
+        )
+        retried = NotificationService.retry_failed(log.id)
+        self.assertEqual(retried.status, DeliveryStatus.SENT)
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_dispatch_stores_payload_context(self):
+        log = NotificationService.send(
+            recipient="ctx@example.com",
+            channel=ChannelChoices.EMAIL,
+            subject="Ctx",
+            body="Ctx Body",
+            context={"order_id": 42},
+        )
+        self.assertEqual(log.payload, {"order_id": 42})
+
+    def test_send_recipient_is_stripped(self):
+        log = NotificationService.send(
+            recipient="  padded@example.com  ",
+            channel=ChannelChoices.EMAIL,
+            subject="Pad",
+            body="Pad Body",
+        )
+        self.assertEqual(log.recipient, "padded@example.com")
+
+
+class NotificationDispatchFailureTest(TestCase):
+    """Failure branches of NotificationService._dispatch_log."""
+
+    def test_unregistered_channel_marks_failed(self):
+        log = NotificationService.send(
+            recipient="+1234567890",
+            channel=ChannelChoices.SMS,
+            subject="SMS",
+            body="SMS Body",
+        )
+        self.assertEqual(log.status, DeliveryStatus.FAILED)
+        self.assertIn("No provider registered", log.error_message)
+        self.assertIsNone(log.sent_at)
+
+    def test_provider_failure_result_marks_failed(self):
+        failing_provider = MagicMock()
+        failing_provider.send.return_value = NotificationResult(
+            success=False, error="SMTP connection refused"
+        )
+        with patch(
+            "apps.notifications.services.ProviderRegistry.get",
+            return_value=failing_provider,
+        ):
+            log = NotificationService.send(
+                recipient="fail@example.com",
+                channel=ChannelChoices.EMAIL,
+                subject="Fail",
+                body="Fail Body",
+            )
+
+        self.assertEqual(log.status, DeliveryStatus.FAILED)
+        self.assertEqual(log.error_message, "SMTP connection refused")
+        self.assertIsNone(log.sent_at)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_provider_failure_without_error_message_defaults(self):
+        failing_provider = MagicMock()
+        failing_provider.send.return_value = NotificationResult(success=False)
+        with patch(
+            "apps.notifications.services.ProviderRegistry.get",
+            return_value=failing_provider,
+        ):
+            log = NotificationService.send(
+                recipient="fail@example.com",
+                channel=ChannelChoices.EMAIL,
+                subject="Fail",
+                body="Fail Body",
+            )
+
+        self.assertEqual(log.status, DeliveryStatus.FAILED)
+        self.assertEqual(log.error_message, "Provider dispatch failed.")
+
+    def test_provider_exception_marks_failed(self):
+        raising_provider = MagicMock()
+        raising_provider.send.side_effect = RuntimeError("boom")
+        with patch(
+            "apps.notifications.services.ProviderRegistry.get",
+            return_value=raising_provider,
+        ):
+            log = NotificationService.send(
+                recipient="boom@example.com",
+                channel=ChannelChoices.EMAIL,
+                subject="Boom",
+                body="Boom Body",
+            )
+
+        self.assertEqual(log.status, DeliveryStatus.FAILED)
+        self.assertEqual(log.error_message, "boom")
+
+    def test_provider_receives_log_payload_as_context(self):
+        provider = MagicMock()
+        provider.send.return_value = NotificationResult(success=True)
+        with patch(
+            "apps.notifications.services.ProviderRegistry.get",
+            return_value=provider,
+        ):
+            NotificationService.send(
+                recipient="ctx@example.com",
+                channel=ChannelChoices.EMAIL,
+                subject="Ctx",
+                body="Ctx Body",
+                context={"token": "abc"},
+            )
+
+        _, kwargs = provider.send.call_args
+        self.assertEqual(kwargs["context"], {"token": "abc"})
+        self.assertEqual(kwargs["recipient"], "ctx@example.com")
+        self.assertEqual(kwargs["subject"], "Ctx")
+
+    def test_retry_failed_channel_marks_failed_again(self):
+        log = NotificationLog.objects.create(
+            recipient="+1234567890",
+            channel=ChannelChoices.SLACK,
+            subject="Slack",
+            body="Slack Body",
+            status=DeliveryStatus.FAILED,
+            error_message="old error",
+        )
+        retried = NotificationService.retry_failed(log.id)
+        self.assertEqual(retried.status, DeliveryStatus.FAILED)
+        self.assertIn("No provider registered", retried.error_message)
