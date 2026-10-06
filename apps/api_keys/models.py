@@ -96,6 +96,14 @@ class APIKey(BaseModel):
         return timezone.now() >= self.expires_at
 
     @property
+    def has_scopes(self) -> bool:
+        """Include soft-deleted attachments so scope removal fails closed."""
+        return (
+            self.permissions.through.objects.filter(apikey=self).exists()
+            or self.roles.through.objects.filter(apikey=self).exists()
+        )
+
+    @property
     def is_valid(self) -> bool:
         """Check if the key is active, not soft-deleted, and not expired."""
         return self.is_active and not self.is_deleted and not self.is_expired

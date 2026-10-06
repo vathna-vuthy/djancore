@@ -80,7 +80,7 @@ class IAMService:
         # If API key is provided and has custom scopes, evaluate API key permission envelope
         if api_key is not None:
             key_perms = cls.get_api_key_effective_permissions(api_key)
-            if key_perms:
+            if api_key.has_scopes:
                 key_allowed = False
                 for perm in key_perms:
                     if cls.match_pattern(perm.action, action) and cls.match_pattern(

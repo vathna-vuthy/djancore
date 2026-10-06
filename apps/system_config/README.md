@@ -1,5 +1,7 @@
 # Dynamic System Configuration (`apps.system_config`)
 
+Business routes require an explicit IAM grant for regular users and staff. Existing ownership and organization access rules also apply. See [module permission actions and rollout](../iam/README.md#module-route-permissions) for grants and public/self-service exceptions.
+
 The `apps.system_config` package is a standalone, reusable Django application providing runtime-tunable configuration key-values with multi-type casting, zero-latency caching, AES-128 Fernet encryption for secrets, and instant admin cache invalidation.
 
 ---
@@ -41,9 +43,9 @@ api_endpoint = ConfigService.get_str("EXTERNAL_SERVICE_URL", default="https://ap
 | Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
 | `GET` | `/api/v1/system-config/public/` | List all public configuration key-values | No |
-| `GET/POST` | `/api/v1/system-config/` | List and create system configuration keys | Yes (Staff) |
-| `GET/PUT/PATCH` | `/api/v1/system-config/{id}/` | Retrieve/Update configuration setting | Yes (Staff) |
-| `DELETE` | `/api/v1/system-config/{id}/` | Soft-delete configuration setting | Yes (Staff) |
-| `POST` | `/api/v1/system-config/{id}/restore/` | Restore soft-deleted configuration | Yes (Staff) |
-| `POST` | `/api/v1/system-config/bulk-update/` | Bulk update multiple configuration keys | Yes (Staff) |
-| `POST` | `/api/v1/system-config/purge-cache/` | Purge all cached configurations | Yes (Staff) |
+| `GET/POST` | `/api/v1/system-config/` | List and create system configuration keys | Yes (IAM grant) |
+| `GET/PUT/PATCH` | `/api/v1/system-config/{id}/` | Retrieve/Update configuration setting | Yes (IAM grant) |
+| `DELETE` | `/api/v1/system-config/{id}/` | Soft-delete configuration setting | Yes (IAM grant) |
+| `POST` | `/api/v1/system-config/{id}/restore/` | Restore soft-deleted configuration | Yes (IAM grant) |
+| `POST` | `/api/v1/system-config/bulk-update/` | Bulk update multiple configuration keys | Yes (IAM grant) |
+| `POST` | `/api/v1/system-config/purge-cache/` | Purge all cached configurations | Yes (IAM grant) |

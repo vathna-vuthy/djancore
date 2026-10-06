@@ -1,5 +1,7 @@
 # Outbound Webhooks & Event Dispatcher (`apps.webhooks`)
 
+Business routes require an explicit IAM grant for regular users and staff. Existing ownership and organization access rules also apply. See [module permission actions and rollout](../iam/README.md#module-route-permissions) for grants and public/self-service exceptions.
+
 The `apps.webhooks` package provides a robust outbound webhook dispatcher with HMAC-SHA256 payload signing, anti-replay timestamp protection, event pattern subscriptions, exponential retry backoff, latency tracking, and delivery logs.
 
 ---

@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from apps.audit.models import AuditAction, AuditLog
+from apps.iam.tests.helpers import grant_permissions
 
 User = get_user_model()
 
@@ -19,6 +20,9 @@ class AuditAPITests(APITestCase):
             password="StrongPassword123!",
             is_staff=True,
         )
+
+        grant_permissions(self.user, "audit:logs:*")
+        grant_permissions(self.staff_user, "audit:logs:*")
 
         # Create logs
         self.user_log = AuditLog.objects.create(

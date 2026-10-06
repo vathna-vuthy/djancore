@@ -7,6 +7,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from apps.iam.tests.helpers import grant_permissions
 from apps.notifications.models import (
     ChannelChoices,
     DeliveryStatus,
@@ -26,6 +27,13 @@ class NotificationAPITest(APITestCase):
         self.normal_user = User.objects.create_user(
             email="normal@example.com",
             password="userpassword123",
+        )
+        grant_permissions(
+            self.normal_user,
+            "notifications:send",
+            "notifications:send_template",
+            "notifications:providers:list",
+            "notifications:logs:*",
         )
         self.client.force_authenticate(user=self.normal_user)
 
@@ -195,6 +203,8 @@ class NotificationLogAPITest(APITestCase):
             is_staff=True,
         )
 
+        grant_permissions(self.owner, "notifications:logs:*")
+        grant_permissions(self.staff, "notifications:logs:*")
         self.template = NotificationTemplate.objects.create(
             code="LOG_TMPL",
             name="Log Template",
@@ -282,6 +292,7 @@ class NotificationAPIErrorTest(APITestCase):
         self.user = User.objects.create_user(
             email="erroruser@example.com", password="password123"
         )
+        grant_permissions(self.user, "notifications:*")
         self.client.force_authenticate(user=self.user)
 
         self.active_template = NotificationTemplate.objects.create(

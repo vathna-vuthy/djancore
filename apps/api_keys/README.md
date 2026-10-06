@@ -1,5 +1,7 @@
 # Developer API Keys & Authentication (`apps.api_keys`)
 
+Business routes require an explicit IAM grant for regular users and staff. Existing ownership and organization access rules also apply. See [module permission actions and rollout](../iam/README.md#module-route-permissions) for grants and public/self-service exceptions.
+
 The `apps.api_keys` package delivers secure, developer API key authentication, prefix-based $O(1)$ fast lookup, SHA-256 cryptographic hashing, IP whitelisting, key expiration, and AWS IAM-scoped permissions.
 
 ---

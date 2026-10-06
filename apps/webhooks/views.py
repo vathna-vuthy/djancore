@@ -1,8 +1,9 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import permissions, status, viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
 
 from apps.core.responses import ApiResponse
+from apps.iam.permissions import HasIAMPermission
 from apps.webhooks.models import WebhookDelivery, WebhookEndpoint
 from apps.webhooks.serializers import (
     WebhookDeliverySerializer,
@@ -48,7 +49,8 @@ class WebhookEndpointViewSet(viewsets.ModelViewSet):
 
     queryset = WebhookEndpoint.objects.all().order_by("-created_at")
     serializer_class = WebhookEndpointSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [HasIAMPermission]
+    iam_action_prefix = "webhooks:endpoints"
     search_fields = ["target_url", "description"]
     filterset_fields = ["is_active"]
     ordering_fields = ["created_at", "target_url"]
@@ -187,7 +189,8 @@ class WebhookDeliveryViewSet(viewsets.ReadOnlyModelViewSet):
         WebhookDelivery.objects.select_related("endpoint").all().order_by("-created_at")
     )
     serializer_class = WebhookDeliverySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [HasIAMPermission]
+    iam_action_prefix = "webhooks:deliveries"
     search_fields = ["event_type", "endpoint__target_url", "error_message"]
     filterset_fields = ["status", "event_type", "endpoint"]
     ordering_fields = ["created_at", "duration_ms", "sent_at"]

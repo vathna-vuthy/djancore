@@ -1,9 +1,10 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import permissions, viewsets
+from rest_framework import viewsets
 
 from apps.audit.models import AuditLog
 from apps.audit.serializers import AuditLogSerializer
 from apps.core.responses import ApiResponse
+from apps.iam.permissions import HasIAMPermission
 
 
 @extend_schema_view(
@@ -25,7 +26,8 @@ class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = AuditLog.objects.select_related("actor").all().order_by("-created_at")
     serializer_class = AuditLogSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [HasIAMPermission]
+    iam_action_prefix = "audit:logs"
     search_fields = [
         "resource_type",
         "resource_id",

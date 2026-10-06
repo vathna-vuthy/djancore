@@ -1,5 +1,7 @@
 # Multi-Tenancy & Workspaces (`apps.organizations`)
 
+Business routes require an explicit IAM grant for regular users and staff. Existing ownership and organization access rules also apply. See [module permission actions and rollout](../iam/README.md#module-route-permissions) for grants and public/self-service exceptions.
+
 The `apps.organizations` package delivers complete multi-tenant workspace management, team invitations, member role hierarchies, ownership transfers, and tenant data isolation.
 
 ---

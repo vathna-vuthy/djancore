@@ -3,6 +3,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from apps.iam.tests.helpers import grant_permissions
 from apps.organizations.models import (
     OrganizationMember,
     OrganizationRole,
@@ -22,6 +23,7 @@ class OrganizationAPITests(APITestCase):
             email="api_org_member@example.com",
             password="StrongPassword123!",
         )
+        grant_permissions(self.owner, "organizations:*")
         self.client.force_authenticate(user=self.owner)
 
         self.org = OrganizationService.create_organization(
@@ -115,6 +117,7 @@ class OrganizationAPITests(APITestCase):
             email="newhire@example.com",
             password="StrongPassword123!",
         )
+        grant_permissions(newhire, "organizations:invitations:accept")
         self.client.force_authenticate(user=newhire)
 
         # Accept invitation

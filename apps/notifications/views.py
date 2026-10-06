@@ -1,9 +1,10 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import generics, permissions, status, views, viewsets
+from rest_framework import generics, status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from apps.core.responses import ApiResponse
+from apps.iam.permissions import HasIAMPermission
 from apps.notifications.models import NotificationLog, NotificationTemplate
 from apps.notifications.providers.registry import ProviderRegistry
 from apps.notifications.serializers import (
@@ -50,11 +51,12 @@ from apps.notifications.services import NotificationService
     ),
 )
 class NotificationTemplateViewSet(viewsets.ModelViewSet):
-    """ViewSet for managing notification templates (Admin only)."""
+    """ViewSet for managing notification templates with IAM policies."""
 
     queryset = NotificationTemplate.objects.all().order_by("code")
     serializer_class = NotificationTemplateSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [HasIAMPermission]
+    iam_action_prefix = "notifications:templates"
     search_fields = ["code", "name", "subject_template", "body_template"]
     filterset_fields = ["channel", "is_active"]
     ordering_fields = ["code", "name", "created_at"]
@@ -92,7 +94,8 @@ class NotificationLogViewSet(viewsets.ReadOnlyModelViewSet):
 
     queryset = NotificationLog.objects.all().order_by("-created_at")
     serializer_class = NotificationLogSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [HasIAMPermission]
+    iam_action_prefix = "notifications:logs"
     search_fields = ["recipient", "subject", "error_message"]
     filterset_fields = ["channel", "status", "template"]
     ordering_fields = ["created_at", "scheduled_for", "sent_at"]
@@ -112,8 +115,9 @@ class NotificationLogViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, methods=["post"])
     def cancel(self, request, pk=None):
         """Cancel a pending scheduled notification."""
+        instance = self.get_object()
         try:
-            log = NotificationService.cancel_scheduled(pk)
+            log = NotificationService.cancel_scheduled(instance.pk)
             return ApiResponse.success(
                 data=NotificationLogSerializer(log).data,
                 message="Scheduled notification cancelled successfully.",
@@ -136,12 +140,13 @@ class NotificationLogViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, methods=["post"])
     def reschedule(self, request, pk=None):
         """Reschedule a notification for a new future delivery datetime."""
+        instance = self.get_object()
         serializer = RescheduleNotificationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         new_time = serializer.validated_data["scheduled_for"]
 
         try:
-            log = NotificationService.reschedule(pk, new_time)
+            log = NotificationService.reschedule(instance.pk, new_time)
             return ApiResponse.success(
                 data=NotificationLogSerializer(log).data,
                 message="Notification rescheduled successfully.",
@@ -164,8 +169,9 @@ class NotificationLogViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=True, methods=["post"])
     def retry(self, request, pk=None):
         """Retry sending a notification immediately."""
+        instance = self.get_object()
         try:
-            log = NotificationService.retry_failed(pk)
+            log = NotificationService.retry_failed(instance.pk)
             return ApiResponse.success(
                 data=NotificationLogSerializer(log).data,
                 message="Notification retry dispatched.",
@@ -185,7 +191,8 @@ class SendNotificationView(generics.GenericAPIView):
     """Endpoint to send or schedule an ad-hoc notification."""
 
     serializer_class = SendNotificationSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [HasIAMPermission]
+    required_iam_action = "notifications:send"
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -219,7 +226,8 @@ class SendTemplateNotificationView(generics.GenericAPIView):
     """Endpoint to send or schedule a template-rendered notification."""
 
     serializer_class = SendTemplateNotificationSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [HasIAMPermission]
+    required_iam_action = "notifications:send_template"
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -254,7 +262,8 @@ class SendTemplateNotificationView(generics.GenericAPIView):
 class AvailableProvidersView(views.APIView):
     """Endpoint to inspect available notification providers and channels."""
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [HasIAMPermission]
+    required_iam_action = "notifications:providers:list"
 
     def get(self, request, *args, **kwargs):
         providers = [
