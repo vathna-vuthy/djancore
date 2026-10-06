@@ -114,6 +114,24 @@ CACHES = {
     }
 }
 
+# Optional background notification delivery. No Celery import in synchronous mode.
+CELERY_ENABLED = env.bool("CELERY_ENABLED", default=False)
+CELERY_BROKER_URL = env.str(
+    "CELERY_BROKER_URL",
+    default=env.str("REDIS_URL", default="redis://localhost:6379/0"),
+)
+CELERY_TASK_SERIALIZER = "json"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_IGNORE_RESULT = True
+CELERY_TASK_DEFAULT_QUEUE = "notifications"
+# Bound broker failures instead of retrying publication in an API request.
+CELERY_TASK_PUBLISH_RETRY = False
+CELERY_BROKER_CONNECTION_TIMEOUT = 2
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    "socket_connect_timeout": 2,
+    "socket_timeout": 2,
+}
+
 # Custom User Model
 AUTH_USER_MODEL = "iam.User"
 

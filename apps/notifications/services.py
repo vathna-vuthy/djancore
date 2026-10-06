@@ -2,6 +2,7 @@ import datetime
 import logging
 from typing import Any
 
+from django.conf import settings
 from django.db import transaction
 from django.template import Context, Template
 from django.utils import timezone
@@ -48,7 +49,7 @@ class NotificationService:
         Send or schedule a notification.
 
         If scheduled_for is in the future, the message is saved with status SCHEDULED.
-        Otherwise, it is dispatched immediately via the registered channel provider.
+        Otherwise, it is queued when Celery is enabled, or dispatched immediately.
         """
         context = context or {}
         now = timezone.now()
@@ -78,8 +79,32 @@ class NotificationService:
             )
             return log
 
-        # Dispatch immediately
-        return cls._dispatch_log(log, **kwargs)
+        return cls._send_or_enqueue(log, **kwargs)
+
+    @classmethod
+    def _send_or_enqueue(cls, log: NotificationLog, **kwargs: Any) -> NotificationLog:
+        if not settings.CELERY_ENABLED:
+            return cls._dispatch_log(log, **kwargs)
+
+        from apps.notifications.tasks import deliver_notification
+
+        def enqueue() -> None:
+            try:
+                deliver_notification.apply_async(
+                    args=[str(log.pk)],
+                    kwargs=kwargs,
+                    retry=False,
+                )
+            except Exception:
+                logger.exception("Could not queue notification %s", log.pk)
+                log.status = DeliveryStatus.FAILED
+                log.error_message = (
+                    "Could not queue notification. Retry when the broker is available."
+                )
+                log.save(update_fields=["status", "error_message", "updated_at"])
+
+        transaction.on_commit(enqueue)
+        return log
 
     @classmethod
     def send_template(
@@ -208,7 +233,14 @@ class NotificationService:
         return log
 
     @classmethod
+    @transaction.atomic
     def retry_failed(cls, log_id: Any) -> NotificationLog:
-        """Retry sending a failed or cancelled notification immediately."""
-        log = NotificationLog.objects.get(id=log_id)
-        return cls._dispatch_log(log)
+        """Retry a failed or cancelled notification using the configured delivery mode."""
+        log = NotificationLog.objects.select_for_update().get(id=log_id)
+        if log.status not in (DeliveryStatus.FAILED, DeliveryStatus.CANCELLED):
+            raise ValueError("Only failed or cancelled notifications can be retried.")
+        log.status = DeliveryStatus.PENDING
+        log.error_message = ""
+        log.sent_at = None
+        log.save(update_fields=["status", "error_message", "sent_at", "updated_at"])
+        return cls._send_or_enqueue(log)
