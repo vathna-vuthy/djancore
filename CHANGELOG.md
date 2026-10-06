@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.0](https://github.com/vathna-vuthy/djancore/compare/djancore-v0.2.3...djancore-v0.3.0) (2026-10-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* **iam:** assign IAM grants before rollout. Scoped API keys cannot write IAM or API-key management endpoints.
+
+### Bug Fixes
+
+* **iam:** enforce module permission checks ([217a271](https://github.com/vathna-vuthy/djancore/commit/217a27131ac82a0c8373135dac90133115148de1))
+
 ## [0.2.3](https://github.com/vathna-vuthy/djancore/compare/djancore-v0.2.2...djancore-v0.2.3) (2026-09-27)
 
 
