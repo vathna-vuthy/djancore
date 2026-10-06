@@ -1,5 +1,7 @@
 # Immutable Audit Trails (`apps.audit`)
 
+Business routes require an explicit IAM grant for regular users and staff. Existing ownership and organization access rules also apply. See [module permission actions and rollout](../iam/README.md#module-route-permissions) for grants and public/self-service exceptions.
+
 The `apps.audit` package provides append-only compliance logging, before/after model state diff tracking, automatic human-readable message generation, sensitive data masking, and HTTP request context correlation (`X-Request-ID`).
 
 ---

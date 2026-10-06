@@ -8,7 +8,7 @@ from rest_framework.response import Response
 
 from apps.core.responses import ApiResponse
 from apps.iam.models import Permission, Role, UserGroup
-from apps.iam.permissions import IsAdminOrHasIAMPermission
+from apps.iam.permissions import HasIAMPermission
 from apps.iam.serializers import (
     ChangePasswordSerializer,
     EvaluatePermissionSerializer,
@@ -177,9 +177,10 @@ class EvaluatePermissionView(generics.GenericAPIView):
 class PermissionViewSet(viewsets.ModelViewSet):
     """ViewSet for IAM Permission management."""
 
+    manages_iam_scopes = True
     queryset = Permission.objects.all().order_by("name")
     serializer_class = PermissionSerializer
-    permission_classes = [IsAdminOrHasIAMPermission]
+    permission_classes = [HasIAMPermission]
     search_fields = ["name", "action", "resource", "description"]
     filterset_fields = ["effect", "action", "resource"]
     ordering_fields = ["name", "created_at"]
@@ -211,8 +212,9 @@ class PermissionViewSet(viewsets.ModelViewSet):
 class RoleViewSet(viewsets.ModelViewSet):
     """ViewSet for IAM Role management and permission/user assignments."""
 
+    manages_iam_scopes = True
     queryset = Role.objects.prefetch_related("permissions", "users").order_by("name")
-    permission_classes = [IsAdminOrHasIAMPermission]
+    permission_classes = [HasIAMPermission]
     search_fields = ["name", "description"]
     ordering_fields = ["name", "created_at"]
 
@@ -316,10 +318,11 @@ class RoleViewSet(viewsets.ModelViewSet):
 class UserGroupViewSet(viewsets.ModelViewSet):
     """ViewSet for IAM UserGroup management and member/role assignments."""
 
+    manages_iam_scopes = True
     queryset = UserGroup.objects.prefetch_related(
         "roles", "permissions", "members"
     ).order_by("name")
-    permission_classes = [IsAdminOrHasIAMPermission]
+    permission_classes = [HasIAMPermission]
     search_fields = ["name", "description"]
     ordering_fields = ["name", "created_at"]
 
@@ -423,11 +426,12 @@ class UserGroupViewSet(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     """ViewSet for managing users, direct roles, and direct permissions."""
 
+    manages_iam_scopes = True
     queryset = User.objects.prefetch_related(
         "roles", "direct_permissions", "iam_groups"
     ).order_by("-created_at")
     serializer_class = UserSerializer
-    permission_classes = [IsAdminOrHasIAMPermission]
+    permission_classes = [HasIAMPermission]
     search_fields = ["email", "first_name", "last_name", "phone"]
     ordering_fields = ["email", "created_at"]
 

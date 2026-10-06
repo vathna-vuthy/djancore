@@ -1,5 +1,7 @@
 # Multi-Channel Notifications & Scheduling (`apps.notifications`)
 
+Business routes require an explicit IAM grant for regular users and staff. Existing ownership and organization access rules also apply. See [module permission actions and rollout](../iam/README.md#module-route-permissions) for grants and public/self-service exceptions.
+
 The `apps.notifications` package delivers a modular multi-channel notification dispatch system with dynamic templating, scheduled delivery, retry engines, background workers, and audit tracking.
 
 ---
@@ -69,7 +71,7 @@ NotificationService.send_template(
 | `POST` | `/api/v1/notifications/send/` | Send direct or scheduled notification |
 | `POST` | `/api/v1/notifications/send-template/` | Send template-based notification |
 | `GET` | `/api/v1/notifications/providers/` | List available channel providers & status |
-| `GET/POST` | `/api/v1/notifications/templates/` | Manage notification templates (Staff) |
+| `GET/POST` | `/api/v1/notifications/templates/` | Manage notification templates (IAM grant) |
 | `GET/PUT/PATCH/DEL` | `/api/v1/notifications/templates/{id}/` | Notification template details & soft-delete |
 | `GET` | `/api/v1/notifications/logs/` | List delivery logs (users see theirs, staff sees all) |
 | `GET` | `/api/v1/notifications/logs/{id}/` | Inspect delivery attempt & error diagnostics |

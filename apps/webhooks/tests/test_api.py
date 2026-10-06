@@ -5,6 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from apps.iam.tests.helpers import grant_permissions
 from apps.webhooks.models import WebhookDelivery, WebhookEndpoint, WebhookStatus
 
 User = get_user_model()
@@ -16,6 +17,7 @@ class WebhookAPITests(APITestCase):
             email="api_webhook_user@example.com",
             password="StrongPassword123!",
         )
+        grant_permissions(self.user, "webhooks:*")
         self.client.force_authenticate(user=self.user)
 
         self.endpoint = WebhookEndpoint.objects.create(

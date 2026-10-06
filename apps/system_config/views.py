@@ -3,6 +3,7 @@ from rest_framework import generics, permissions, views, viewsets
 from rest_framework.decorators import action
 
 from apps.core.responses import ApiResponse
+from apps.iam.permissions import HasIAMPermission
 from apps.system_config.models import SystemConfig
 from apps.system_config.serializers import (
     BulkUpdateConfigSerializer,
@@ -44,11 +45,12 @@ from apps.system_config.services import ConfigService
     ),
 )
 class SystemConfigViewSet(viewsets.ModelViewSet):
-    """ViewSet for managing system configurations (Staff only)."""
+    """ViewSet for managing system configurations with IAM policies."""
 
     queryset = SystemConfig.objects.all().order_by("group", "key")
     serializer_class = SystemConfigSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [HasIAMPermission]
+    iam_action_prefix = "system_config"
     search_fields = ["key", "description", "group"]
     filterset_fields = ["group", "data_type", "is_secret", "is_public"]
     ordering_fields = ["key", "group", "created_at"]
@@ -104,10 +106,11 @@ class PublicConfigView(views.APIView):
     request=BulkUpdateConfigSerializer,
 )
 class BulkUpdateConfigView(generics.GenericAPIView):
-    """Endpoint for updating multiple configurations at once (Staff only)."""
+    """Endpoint for updating multiple configurations with an IAM grant."""
 
     serializer_class = BulkUpdateConfigSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [HasIAMPermission]
+    required_iam_action = "system_config:bulk_update"
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)

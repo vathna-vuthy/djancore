@@ -5,6 +5,7 @@ from rest_framework.test import APITestCase
 
 from apps.api_keys.models import APIKey
 from apps.iam.models import EffectChoices, Permission
+from apps.iam.tests.helpers import grant_permissions
 
 User = get_user_model()
 
@@ -19,6 +20,7 @@ class APIKeyAPITests(APITestCase):
             email="admin@example.com",
             password="AdminPassword123!",
         )
+        grant_permissions(self.user, "api_keys:keys:*")
         self.client.force_authenticate(user=self.user)
 
     def test_create_api_key(self):

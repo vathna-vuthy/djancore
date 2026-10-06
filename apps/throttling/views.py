@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.views import APIView
 
 from apps.core.responses import ApiResponse
+from apps.iam.permissions import HasIAMPermission
 from apps.throttling.engine import SlidingWindowRateLimiter
 from apps.throttling.models import IPBlocklist, ThrottlingRule
 from apps.throttling.serializers import (
@@ -53,7 +54,8 @@ class ThrottlingRuleViewSet(viewsets.ModelViewSet):
 
     queryset = ThrottlingRule.objects.all().order_by("name")
     serializer_class = ThrottlingRuleSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [HasIAMPermission]
+    iam_action_prefix = "throttling:rules"
     search_fields = ["name", "path_pattern", "description"]
     filterset_fields = ["scope_type", "is_active"]
     ordering_fields = ["name", "rate_limit", "period_seconds", "created_at"]
@@ -122,7 +124,8 @@ class IPBlocklistViewSet(viewsets.ModelViewSet):
 
     queryset = IPBlocklist.objects.all().order_by("-created_at")
     serializer_class = IPBlocklistSerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [HasIAMPermission]
+    iam_action_prefix = "throttling:blocklist"
     search_fields = ["ip_address", "reason"]
     filterset_fields = ["is_active"]
     ordering_fields = ["created_at", "expires_at"]

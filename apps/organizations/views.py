@@ -1,11 +1,12 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import permissions, viewsets
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from apps.core.responses import ApiResponse
+from apps.iam.permissions import HasIAMPermission
 from apps.organizations.models import (
     Organization,
     OrganizationInvitation,
@@ -61,7 +62,15 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
     queryset = Organization.objects.all().order_by("name")
     serializer_class = OrganizationSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [HasIAMPermission]
+    iam_action_prefix = "organizations:organizations"
+    required_iam_actions = {
+        ("members", "GET"): "organizations:organizations:members_list",
+        ("members", "HEAD"): "organizations:organizations:members_list",
+        ("members", "POST"): "organizations:organizations:members_invite",
+        ("manage_member", "PATCH"): "organizations:organizations:members_update",
+        ("manage_member", "DELETE"): "organizations:organizations:members_remove",
+    }
     search_fields = ["name", "slug", "description"]
     filterset_fields = ["is_active"]
     ordering_fields = ["name", "created_at"]
@@ -315,7 +324,8 @@ class OrganizationInvitationViewSet(viewsets.ReadOnlyModelViewSet):
         .order_by("-created_at")
     )
     serializer_class = OrganizationInvitationSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [HasIAMPermission]
+    iam_action_prefix = "organizations:invitations"
 
     def get_queryset(self):
         user = self.request.user

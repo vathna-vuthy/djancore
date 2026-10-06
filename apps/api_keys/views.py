@@ -1,5 +1,5 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
-from rest_framework import permissions, viewsets
+from rest_framework import viewsets
 from rest_framework.decorators import action
 
 from apps.api_keys.models import APIKey
@@ -11,6 +11,7 @@ from apps.api_keys.serializers import (
     RotateAPIKeySerializer,
 )
 from apps.core.responses import ApiResponse
+from apps.iam.permissions import HasIAMPermission
 
 
 @extend_schema_view(
@@ -50,7 +51,9 @@ class APIKeyViewSet(viewsets.ModelViewSet):
 
     queryset = APIKey.objects.all().order_by("-created_at")
     serializer_class = APIKeySerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [HasIAMPermission]
+    iam_action_prefix = "api_keys:keys"
+    manages_iam_scopes = True
     search_fields = ["name", "prefix"]
     filterset_fields = ["is_active"]
     ordering_fields = ["created_at", "last_used_at", "name"]

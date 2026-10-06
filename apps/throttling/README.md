@@ -1,5 +1,7 @@
 # Throttling & Abuse Prevention (`apps.throttling`)
 
+Business routes require an explicit IAM grant for regular users and staff. Existing ownership and organization access rules also apply. See [module permission actions and rollout](../iam/README.md#module-route-permissions) for grants and public/self-service exceptions.
+
 The `apps.throttling` package provides high-performance, multi-dimensional dynamic rate limiting, token bucket burst allowances, sliding window counters, and IP blocklist defense backed by Django's cache framework (`CACHES['default']`).
 
 ---
@@ -34,9 +36,9 @@ The `apps.throttling` package provides high-performance, multi-dimensional dynam
 | Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
 | `GET` | `/api/v1/throttling/usage/` | Inspect current rate limit quota usage and remaining allowance | No |
-| `GET/POST` | `/api/v1/throttling/rules/` | List and create dynamic rate limiting rules | Yes (Admin) |
-| `GET/PATCH/DEL` | `/api/v1/throttling/rules/{id}/` | Inspect, update, or soft-delete rate limit rule | Yes (Admin) |
-| `POST` | `/api/v1/throttling/rules/{id}/restore/` | Restore soft-deleted throttling rule | Yes (Admin) |
-| `GET/POST` | `/api/v1/throttling/blocklist/` | List and add IP addresses to blocklist | Yes (Admin) |
-| `POST` | `/api/v1/throttling/blocklist/block/` | Quick block IP with optional duration expiration | Yes (Admin) |
-| `POST` | `/api/v1/throttling/blocklist/{id}/unblock/` | Unblock IP address | Yes (Admin) |
+| `GET/POST` | `/api/v1/throttling/rules/` | List and create dynamic rate limiting rules | Yes (IAM grant) |
+| `GET/PATCH/DEL` | `/api/v1/throttling/rules/{id}/` | Inspect, update, or soft-delete rate limit rule | Yes (IAM grant) |
+| `POST` | `/api/v1/throttling/rules/{id}/restore/` | Restore soft-deleted throttling rule | Yes (IAM grant) |
+| `GET/POST` | `/api/v1/throttling/blocklist/` | List and add IP addresses to blocklist | Yes (IAM grant) |
+| `POST` | `/api/v1/throttling/blocklist/block/` | Quick block IP with optional duration expiration | Yes (IAM grant) |
+| `POST` | `/api/v1/throttling/blocklist/{id}/unblock/` | Unblock IP address | Yes (IAM grant) |
