@@ -26,6 +26,19 @@ DEBUG = env("DJANGO_DEBUG")
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 SYSTEM_CONFIG_ENCRYPTION_KEY = env("SYSTEM_CONFIG_ENCRYPTION_KEY", default="")
 
+# Email settings are fallbacks for dynamic SystemConfig provider configuration.
+EMAIL_BACKEND = env.str(
+    "EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend"
+)
+EMAIL_HOST = env.str("EMAIL_HOST", default="localhost")
+EMAIL_PORT = env.int("EMAIL_PORT", default=25)
+EMAIL_HOST_USER = env.str("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=False)
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
+EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=10)
+DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL", default="webmaster@localhost")
+
 # Application definition
 DJANGO_APPS = [
     "django.contrib.admin",

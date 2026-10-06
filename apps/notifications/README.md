@@ -50,13 +50,41 @@ Start Redis (for example, using Docker), then run the worker and API in separate
 
 ```bash
 docker run --rm --name djancore-redis -p 127.0.0.1:6379:6379 redis:7-alpine
-uv run --extra celery celery -A config.celery:app worker --loglevel=info --queues=notifications
+uv run --extra celery celery -A config.celery:app worker --loglevel=info --queues=notifications --pool=solo
 uv run --extra celery python manage.py runserver
 ```
 
 In production, set `DJANGO_SETTINGS_MODULE=config.settings.production` for the
 worker and API, and configure Redis persistence and access controls. Use
 PostgreSQL for concurrent delivery workers; SQLite does not provide row locks.
+
+The local command uses `--pool=solo` to process tasks in the worker's main
+process. This avoids child-process initialization failures on macOS with a
+spawn-based multiprocessing setup, including `fast_trace_task` errors such as
+`ValueError: not enough values to unpack (expected 3, got 0)`. Stop the existing
+worker before restarting with this option. Linux deployments can use the default
+`prefork` pool for process concurrency. See [Celery pool options](https://docs.celeryq.dev/en/stable/userguide/concurrency/index.html).
+
+If a task failed before reaching notification delivery, its log can remain
+`PENDING` and the task may already have been consumed. Restarting the worker does
+not guarantee that task is replayed. Send a new test request after correcting
+the pool; inspect existing pending logs before attempting recovery.
+
+For local smtp4dev delivery, configure `.env` for both the API and worker:
+
+```dotenv
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=localhost
+EMAIL_PORT=2525
+EMAIL_USE_TLS=False
+EMAIL_USE_SSL=False
+```
+
+Restart both processes after changing `.env`. Development defaults to console
+output only when no email backend is configured. SystemConfig entries override
+the corresponding environment settings; check them if the effective backend or
+SMTP destination differs. If the worker runs in a container, use the smtp4dev
+service hostname and its internal SMTP port instead of the host-mapped address.
 
 With `CELERY_ENABLED=True`, immediate direct and template sends normally return
 HTTP 201 with a `PENDING` notification log. Publication happens after the database commit.
