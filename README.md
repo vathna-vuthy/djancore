@@ -102,6 +102,9 @@ uv run python manage.py runserver
 uv run python manage.py process_scheduled_notifications --daemon --interval 10
 ```
 
+For optional Redis/Celery delivery of immediate Email and Telegram notifications,
+see the [background notification setup](apps/notifications/README.md#optional-celery-delivery-for-immediate-notifications).
+
 ---
 
 ## 📖 API Documentation & Reference

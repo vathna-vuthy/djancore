@@ -15,6 +15,9 @@ dependencies = [
     "psycopg[binary]>=3.2.0",
 ]
 
+[project.optional-dependencies]
+celery = ["celery[redis]>=5.6,<6"]
+
 [dependency-groups]
 dev = [
     "django-types>=0.24.0",

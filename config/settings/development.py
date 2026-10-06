@@ -10,5 +10,7 @@ ALLOWED_HOSTS = ["*"]
 if not CORS_ALLOWED_ORIGINS:  # noqa: F405
     CORS_ALLOW_ALL_ORIGINS = True
 
-# Email backend for development
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+# Default to console locally, but honor an explicit .env/environment backend.
+EMAIL_BACKEND = env.str(  # noqa: F405
+    "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
+)

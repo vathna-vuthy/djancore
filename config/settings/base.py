@@ -26,6 +26,19 @@ DEBUG = env("DJANGO_DEBUG")
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 SYSTEM_CONFIG_ENCRYPTION_KEY = env("SYSTEM_CONFIG_ENCRYPTION_KEY", default="")
 
+# Email settings are fallbacks for dynamic SystemConfig provider configuration.
+EMAIL_BACKEND = env.str(
+    "EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend"
+)
+EMAIL_HOST = env.str("EMAIL_HOST", default="localhost")
+EMAIL_PORT = env.int("EMAIL_PORT", default=25)
+EMAIL_HOST_USER = env.str("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env.str("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=False)
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
+EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=10)
+DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL", default="webmaster@localhost")
+
 # Application definition
 DJANGO_APPS = [
     "django.contrib.admin",
@@ -112,6 +125,24 @@ CACHES = {
         ),
         "LOCATION": env.str("CACHE_LOCATION", default="djancore-cache"),
     }
+}
+
+# Optional background notification delivery. No Celery import in synchronous mode.
+CELERY_ENABLED = env.bool("CELERY_ENABLED", default=False)
+CELERY_BROKER_URL = env.str(
+    "CELERY_BROKER_URL",
+    default=env.str("REDIS_URL", default="redis://localhost:6379/0"),
+)
+CELERY_TASK_SERIALIZER = "json"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_IGNORE_RESULT = True
+CELERY_TASK_DEFAULT_QUEUE = "notifications"
+# Bound broker failures instead of retrying publication in an API request.
+CELERY_TASK_PUBLISH_RETRY = False
+CELERY_BROKER_CONNECTION_TIMEOUT = 2
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    "socket_connect_timeout": 2,
+    "socket_timeout": 2,
 }
 
 # Custom User Model

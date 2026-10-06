@@ -1,7 +1,11 @@
 from django.contrib import admin, messages
 from django.utils.translation import gettext_lazy as _
 
-from apps.notifications.models import NotificationLog, NotificationTemplate
+from apps.notifications.models import (
+    DeliveryStatus,
+    NotificationLog,
+    NotificationTemplate,
+)
 from apps.notifications.services import NotificationService
 
 
@@ -66,7 +70,7 @@ class NotificationLogAdmin(admin.ModelAdmin):
     @admin.action(description=_("Retry sending selected failed notifications"))
     def retry_selected_failed(self, request, queryset):
         retried = 0
-        for obj in queryset:
+        for obj in queryset.filter(status=DeliveryStatus.FAILED):
             NotificationService.retry_failed(obj.id)
             retried += 1
         self.message_user(
