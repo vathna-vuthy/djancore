@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.4.0](https://github.com/vathna-vuthy/djancore/compare/djancore-v0.3.0...djancore-v0.4.0) (2026-11-09)
+
+
+### Features
+
+* **notifications:** add Celery delivery ([1d96c85](https://github.com/vathna-vuthy/djancore/commit/1d96c855c83484fcd71d79959152c735055d5d71))
+* **notifications:** add optional Celery delivery ([468ad61](https://github.com/vathna-vuthy/djancore/commit/468ad61d643b452c06d8ba3352afd808e05dd664))
+
+
+### Bug Fixes
+
+* **notifications:** honor email environment settings ([b2bfb83](https://github.com/vathna-vuthy/djancore/commit/b2bfb8332ea25bf13d1cf3bbb70d922a7a6aa052))
+
 ## [0.3.0](https://github.com/vathna-vuthy/djancore/compare/djancore-v0.2.3...djancore-v0.3.0) (2026-10-06)
 
 
