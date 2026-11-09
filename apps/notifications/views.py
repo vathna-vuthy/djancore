@@ -162,20 +162,22 @@ class NotificationLogViewSet(viewsets.ReadOnlyModelViewSet):
     @extend_schema(
         tags=["Notifications"],
         summary="Retry sending notification",
-        description="Immediately re-attempt dispatching a failed or cancelled notification.",
+        description="Retry a failed or cancelled notification. Queued when Celery is enabled.",
         request=None,
         responses={200: NotificationLogSerializer},
     )
     @action(detail=True, methods=["post"])
     def retry(self, request, pk=None):
-        """Retry sending a notification immediately."""
+        """Retry a notification using the configured delivery mode."""
         instance = self.get_object()
         try:
             log = NotificationService.retry_failed(instance.pk)
             return ApiResponse.success(
                 data=NotificationLogSerializer(log).data,
-                message="Notification retry dispatched.",
+                message="Notification retry requested.",
             )
+        except ValueError as e:
+            return ApiResponse.error(message=str(e), status=status.HTTP_400_BAD_REQUEST)
         except NotificationLog.DoesNotExist:
             return ApiResponse.not_found(message="Notification log not found.")
 
@@ -183,7 +185,7 @@ class NotificationLogViewSet(viewsets.ReadOnlyModelViewSet):
 @extend_schema(
     tags=["Notifications"],
     summary="Send direct notification",
-    description="Send or schedule a direct ad-hoc notification via a selected communication channel.",
+    description="Send or schedule a direct notification. With Celery enabled, immediate delivery returns PENDING and runs in a worker; inspect the log for the result.",
     request=SendNotificationSerializer,
     responses={201: NotificationLogSerializer},
 )
@@ -218,7 +220,7 @@ class SendNotificationView(generics.GenericAPIView):
 @extend_schema(
     tags=["Notifications"],
     summary="Send template notification",
-    description="Send or schedule a notification rendered from a registered template.",
+    description="Send or schedule a template notification. With Celery enabled, immediate delivery returns PENDING and runs in a worker; inspect the log for the result.",
     request=SendTemplateNotificationSerializer,
     responses={201: NotificationLogSerializer},
 )
